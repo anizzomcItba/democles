@@ -1,4 +1,5 @@
 #include "sys.h"
+#include "drivers/video/video.h"
 
 void syswrite(int fd, char * buffer, int qty )
 {

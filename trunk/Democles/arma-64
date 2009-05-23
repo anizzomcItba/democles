@@ -1,7 +1,7 @@
 nasm -f aout -g loader.asm -o loader.o
-nasm -f aout -g libasm.asm -o libasm.o
-gcc -g -m32 -c kernel.c -o kernel.o
-gcc -g -m32 -c libc.c  -o libc.o
-ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o libc.o libasm.o
-
-
+nasm -f aout -g sys.asm -o sysasm.o
+gcc -g  -m32 -c kernel.c -o kernel.o
+gcc -g  -m32 -c sys.c  -o sysc.o
+gcc -g  -m32 -c drivers/video/video.c -o video.o
+ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o video.o
+rm *.o
