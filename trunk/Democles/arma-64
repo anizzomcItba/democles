@@ -5,3 +5,4 @@ gcc -g  -m32 -c sys.c  -o sysc.o
 gcc -g  -m32 -c drivers/video/video.c -o video.o
 ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o video.o
 rm *.o
+mcopy -o kernel.bin a:/boot/

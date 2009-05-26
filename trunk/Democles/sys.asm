@@ -4,8 +4,8 @@ GLOBAL int_80_handler
 GLOBAL int_08_handler
 GLOBAL mascaraPIC1
 GLOBAL mascaraPIC2
-GLOBAL _Cli
-GLOBAL _Sti
+GLOBAL _cli
+GLOBAL _sti
 GLOBAL _lidt
 
 EXTERN syswrite
@@ -17,32 +17,32 @@ EXTERN sysread
 SECTION .text
 
 
-_Cli:
+_cli:
 	cli			; limpia flag de interrupciones
 	ret
 
-_Sti:
+_sti:
 
 	sti			; habilita interrupciones por flag
 	ret
 
 
-_lidt:				; Carga el IDTR 
+_lidt:				; Carga el IDTR
         push    ebp
         mov     ebp, esp
         push    ebx
-        mov     ebx, [ss: ebp + 6] ; ds:bx = puntero a IDTR 
-	rol	ebx,16		    	
+        mov     ebx, [ss: ebp + 6] ; ds:bx = puntero a IDTR
+	rol	ebx,16
 	lidt    [ds: ebx]          ; carga IDTR
         pop     ebx
         pop     ebp
         retn
-        
+
 _write:
 	push	ebp
 	mov	ebp, esp
 
-	
+
 	mov	esp, ebp
 	pop	ebp
 	ret
@@ -51,7 +51,7 @@ _write:
 _read:
 	push	ebp
 	mov	ebp, esp
-	
+
 	mov	esp, ebp
 	pop	ebp
 	ret

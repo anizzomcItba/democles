@@ -6,7 +6,7 @@ void syswrite(int fd, char * buffer, int qty )
 
 	switch(fd)
 	{
-		case STDOUT: testVideo();
+		case STDOUT: writeLine(buffer, qty);
 		break;
 	}
 	return;

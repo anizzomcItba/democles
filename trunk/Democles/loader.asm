@@ -1,6 +1,6 @@
-global _loader		; making entry point visible to linker
-global eokl		; end of kernel land
-extern _main		; _main is defined elsewhere
+global _loader	;making entry point visible to linker
+global eokl		;end of kernel land
+extern _main	;_main is defined elsewhere
 
 
 ; setting up the Multiboot header - see GRUB docs for details
@@ -33,4 +33,4 @@ eokl	dd STACKSIZE + stack
 	align 32
 	stack:
 	resb STACKSIZE		; reserve 16k stack on a quadword boundary
-	
+

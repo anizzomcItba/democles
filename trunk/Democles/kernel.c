@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "multiboot.h"
 #include "sysasm.h"
+#include "sys.h"
 
 DESCR_INT idt[0x81];			/* IDT de 81h entradas*/
 IDTR idtr;				/* IDTR */
@@ -15,35 +16,44 @@ KERNEL
 int _main(multiboot_info_t* mbd, unsigned int magic)
 {
 
-   
+
 /* CARGA DE IDT CON LA RUTINA DE ATENCION DE IRQ0    */
 
-        setup_IDT_entry (&idt[0x08], 0x08, (dword)&int_08_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x08], 0x08, (dword)&int_08_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x80], 0x08, (dword)&int_80_handler, ACS_INT, 0);
 
-	
+
 
 /* Carga de IDTR    */
 
 	idtr.base =(dword) &idt;
 	idtr.limit = sizeof(idt)-1;
-	
-	_lidt (&idtr);	
 
-	
+	_lidt (&idtr);
+
+
 /* Habilito interrupcion de timer tick*/
 
-        mascaraPIC1(0xFE);
-        mascaraPIC2(0xFF);
-        
-	_Sti();
+	mascaraPIC1(0xFE);
+	mascaraPIC2(0xFF);
 
-	while(1)	
+	_sti();
+
+
+	/**
+	 * writeLine devería reemplazarse por un _write o printn
+	 * cuando esten implementadas las system calls.
+	 */
+	clearScreen();
+	writeLine("Kernel Alive!", 13);
+	writeLine("Scroll Testing", 14);
+
+	while(1)
 	{
 		/*Shell */
-		_write(STDOUT,NULL,0);
-        }
-	
+//		_write(STDOUT,NULL,0);
+    }
+
 }
 
 
@@ -53,7 +63,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 *
 *Recibe: Puntero a elemento de la IDT
 *	 Selector a cargar en el descriptor de interrupcion
-*	 Puntero a rutina de atencion de interrupcion	
+*	 Puntero a rutina de atencion de interrupcion
 *	 Derechos de acceso del segmento
 *	 Cero
 ****************************************************************/
