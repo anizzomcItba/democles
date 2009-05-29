@@ -1,19 +1,40 @@
-#include "sys.h"
-#include "drivers/video/video.h"
+#include "include/sys.h"
+#include "drivers/video/crtc6845.h"
+#include "include/string.h"
 
-void syswrite(int fd, char * buffer, int qty )
-{
+#define MAX_FDS 5
 
-	switch(fd)
+//Descriptor de archivos.
+typedef struct {
+	void *buffer;
+	void (*flush)(int);
+} fdT;
+
+
+static fdT fdTable[MAX_FDS];
+
+int fdTableInit(){
+	int i;
+
+	for(i = 0; i < MAX_FDS ; i++)
 	{
-		case STDOUT: writeLine(buffer, qty);
-		break;
+		fdTable[i].buffer = NULL;
+		fdTable[i].flush = NULL;
 	}
-	return;
 }
 
+int sysopen(int fd){
 
-void sysread(int fd, char * buffer, int qty )
+}
+
+void syswrite(int fd, char * buffer, size_t qty)
+{
+	memcpy(fdTable[fd].buffer, buffer, qty);
+	fdTable[fd].flush(qty);
+}
+
+void sysread(int fd, char * buffer, int qty)
 {
 	return;
 }
+

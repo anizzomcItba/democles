@@ -1,8 +1,8 @@
-#include "kernel.h"
-#include "defs.h"
-#include "multiboot.h"
-#include "sysasm.h"
-#include "sys.h"
+#include "include/kernel.h"
+#include "include/defs.h"
+#include "include/multiboot.h"
+#include "include/sysasm.h"
+#include "include/sys.h"
 
 DESCR_INT idt[0x81];			/* IDT de 81h entradas*/
 IDTR idtr;				/* IDTR */

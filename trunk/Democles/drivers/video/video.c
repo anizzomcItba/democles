@@ -51,7 +51,7 @@ void writeLine(char *str, int qty)
 		if (!(i % VIDEO_COLS))
 			scroll();
 
-		buffer[24*VIDEO_COLS + (i*2)%48] = str[i];
+		buffer[24*VIDEO_COLS + (i*2)%VIDEO_COLS] = str[i];
 	}
 
 	flush();
@@ -77,3 +77,5 @@ static void scroll(){
 		for (j = 0 ; j < VIDEO_COLS ; j++)
 			buffer[(i-1)*VIDEO_COLS + j] = buffer[i*VIDEO_COLS + j];
 }
+
+
