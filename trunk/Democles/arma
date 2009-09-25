@@ -1,9 +1,0 @@
-nasm -f aout -g loader.asm -o loader.o
-nasm -f aout -g sys.asm -o sysasm.o
-gcc -g  -c kernel.c -o kernel.o
-gcc -g  -c sys.c  -o sysc.o
-gcc -g  -c drivers/video/video.c -o video.o
-ld  -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o video.o
-rm *.o
-
-
