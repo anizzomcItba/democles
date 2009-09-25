@@ -1,0 +1,17 @@
+Mueve el cursor
+
+	_out(0x3D4, 0x0F);
+	_out(0x3D5, 0x0);  //Col 0
+	_out(0x3D4, 0x0E);
+	_out(0x3D5, 0x0); //Fil 0
+	
+			pusha
+c1:		in al, 74h
+		cmp al, AAh
+		jne c1
+		in al, 74
+		call mouseRoutine
+		mov al, 20h
+		out 20h, al
+		pop eax
+		popa

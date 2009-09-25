@@ -1,0 +1,26 @@
+V74
+1. Implementado Fortune
+2. Arreglado que el mouse copie y pege
+3. Toqueteado el código por todos lados
+4. Agregado de la función RANDOM -> TODO: Implementar "Randomize"
+5. Ahora kprintf interprete correctamente los \t
+6. Cambiado el nombre de la función resetScreen a resetScreenSaver para no prestar confusión
+7.S
+
+V73 - Augusto
+1. Chicos les modifiqué el arma para que compile con -Wall
+2. Eliminado todos los warnings -1, que es que pause no se usa nunca.
+
+
+V72 - Augusto
+
+Chicos, cambie un par de cositas que por ahí andaban dando vueltas:
+1. Desabilité las funciones de copia del mouse, porque en realidad no nos sirven porque estaban cableadas.
+2. Agregé el caracter de control \r, esto hace que el cursor vuelva a X = 0.
+3. Al inicio del kernel copio la pantalla y la pego a traves de STDIN y luego hago getchar. Parece que funciona bien.
+4. Agrande los buffers del sys.c por las moscas.
+5. COMPILEN CON -Wall!!!!, está lleno el código de warnings y el compilador hdp no te avisa si tenes una función que 
+retorna char y nunca pusieron el return. Saque un montón... pero bue.
+6. Cambie una función en sys.c que hacia una validación al pedo.
+
+7. Si no van a hacer Commits con comentarios extensos, por lo menos comenten acá que hicieron. Nos vemos en un rato.

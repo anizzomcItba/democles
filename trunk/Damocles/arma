@@ -1,0 +1,21 @@
+nasm -f aout -g loader.asm -o loader.o
+nasm -f aout -g sys.asm -o sysasm.o
+gcc -Wall -g  -c -fno-builtin-printf -fno-builtin-putchar -nostartfiles -nostdlib kernel.c -o kernel.o
+gcc -Wall -g  -c sys.c  -o sysc.o
+gcc -Wall -g  -c -fno-stack-protector -fno-builtin-printf drivers/video/crtc6845.c -o crtc6845.o
+gcc -Wall -g -c  -fno-builtin-printf -fno-builtin-putchar -nostartfiles -nostdlib lib/string.c -o string.o
+gcc -Wall -g -c -fno-builtin-printf -fno-builtin-abs lib/video.c -o video.o
+gcc -Wall -g -c drivers/keyboard/keyboard.c -o keyboard.o
+gcc -Wall -g -c drivers/timer/timer.c -o timer.o
+gcc -Wall -g -c -fno-builtin-printf  drivers/mouse/mouse.c -o mouse.o
+gcc -Wall -g  -fno-stack-protector -fno-builtin-putchar -fno-builtin-printf -c lib/stdio.c -o stdio.o
+gcc -Wall -g -c -fno-builtin-abs lib/math.c -o math.o
+gcc -Wall -g -c -fno-stack-protector shell/shell.c -o shell.o
+gcc -Wall -g -c services/clipboard.c -o clipboard.o
+gcc -Wall -g -m32 -c services/fortune.c -o fortune.o
+ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o mouse.o stdio.o math.o timer.o shell.o clipboard.o fortune.o
+rm *.o
+
+
+mcopy -o kernel.bin a:/boot/
+mcopy -o kernel.bin d:/boot/
