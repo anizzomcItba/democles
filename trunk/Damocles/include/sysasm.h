@@ -25,8 +25,10 @@ void 	_read( int fd, void * buffer, size_t qty );
 void	_flush(int fd);
 
 
+
 void		int_08_handler();      /* Timer tick */
 void		int_80_handler();
+void		new_int_80_handler();
 void 		int_09_handler();
 void		int_74_handler();
 

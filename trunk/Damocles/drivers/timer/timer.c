@@ -14,13 +14,15 @@ static int from_preview = 0;
 static char newLayout[LAYOUT_LENGTH];
 
 void timerHandler(){
+/*
 	int tick = tick_waiter;
 	int save = screen_saver;
 
 		if( tick > save)
 			screenSaver();
 	tick_waiter ++;
-	/*kprint("tick");*/
+	kprint("tick");*/
+
 	return;
 }
 

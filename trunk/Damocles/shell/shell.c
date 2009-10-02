@@ -701,7 +701,7 @@ static void
 shutdown()
 {
 	kprintf("\nSe apago! :(\n");
-	0/0;
+	//0/0;
 }
 
 

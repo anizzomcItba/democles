@@ -70,6 +70,7 @@ typedef struct{
 static fdT fdTable[MAX_FDS];
 static char *err = "This file descriptor is NOT INITIALIZED!\n";
 
+typedef void *(*sysfT)(void **);
 
 /* Funciones privadas del módulo */
 
@@ -78,6 +79,38 @@ static int isBufferEmpty(int fd);
 static char bufferRead(int fd);
 static void bufferAdd(int fd, char c);
 static void bufferFlush(int fd);
+
+
+void *sysfRead(void **args);
+void *sysfWrite(void **args);
+void *sysfFlush(void **args);
+
+
+sysfT syscalls[] = {
+		sysfRead, sysfWrite, sysfFlush
+};
+
+
+void *sysfRead(void **args){
+	sysread((int) args[0], args[1],(int)args[2]);
+	return (void *)0;
+}
+
+void *sysfWrite(void **args){
+	syswrite((int) args[0], args[1], (int)args[2]);
+	return (void *)0;
+}
+
+void *sysfFlush(void **args){
+	sysflush((int) args[0]);
+	return (void*)0;
+}
+
+
+void *_dispatcher(int callnum, void **args){
+	return syscalls[callnum](args);
+}
+
 
 void fdTableInit(){
 
@@ -165,8 +198,9 @@ void sysread(int fd, char *buffOut, size_t qty){
 
 }
 
-void sysflush(int fd){
+int sysflush(int fd){
 	bufferFlush(fd);
+	return 1;
 }
 
 static int isBufferFull(int fd){
@@ -225,7 +259,3 @@ static char bufferRead(int fd){
 
 	return ret;
 }
-
-
-
-
