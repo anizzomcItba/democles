@@ -1,6 +1,7 @@
 GLOBAL _write
 GLOBAL _read
 GLOBAL _flush
+GLOBAL new_int_80_handler
 GLOBAL int_80_handler
 GLOBAL int_08_handler
 GLOBAL int_09_handler
@@ -19,6 +20,7 @@ EXTERN sysflush
 EXTERN keyboardRoutine
 EXTERN timerHandler
 EXTERN mouseRoutine
+EXTERN _dispatcher
 
 
 
@@ -57,7 +59,7 @@ _write:
  	mov ecx, [ebp+12] ;	buffer
  	mov edx, [ebp+16] ; cant
 
- 	mov al, 01h
+ 	mov eax, 01h
 
 	int 80h
 
@@ -75,7 +77,7 @@ _read:
  	mov ecx, [ebp+12] ;	buffer
  	mov edx, [ebp+16] ; cant
 
- 	mov al, 00h
+ 	mov eax, 00h
 
 	int 80h
 
@@ -94,7 +96,7 @@ _flush:
 	pusha
 
 	mov ebx, [ebp+8] ; file descriptor
-	mov al, 02h
+	mov eax, 02h
 
 	int 80h
 
@@ -103,6 +105,39 @@ _flush:
 	mov esp, ebp
 	pop ebp
 	ret
+
+
+new_int_80_handler:
+	push ebp
+	mov ebp, esp	;StackFrame
+
+	sti				;TODO cuando leer sea bloqueante
+					; a nivel proceso hay que sacarlo
+
+
+	; Cambio de contexto?
+
+	push edi
+	push esi
+	push edx
+	push ecx
+	push ebx
+
+	push esp		;Puntero al array de argumentos
+
+	push eax		;Systemcall
+
+	call _dispatcher
+	; En eax debe dejar la
+	; respuesta
+
+	; Devolver el contexto anterior
+
+	mov esp, ebp
+	pop ebp
+
+	iret
+
 
 int_80_handler:
 
