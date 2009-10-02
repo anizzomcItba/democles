@@ -32,4 +32,9 @@ void		new_int_80_handler();
 void 		int_09_handler();
 void		int_74_handler();
 
+int _read_cr0();
+int  _read_cr3();
+void _write_cr3();
+void _write_cr0();
+
 #endif
