@@ -10,6 +10,7 @@
 #include "include/stdio.h"
 #include "include/timer.h"
 #include "include/clipboard.h"
+#include "include/mmu.h"
 
 
 #include "drivers/video/crtc6845.h" //TODO: Esta de debugeo esto
@@ -30,6 +31,8 @@ KERNEL
 
 int _main(multiboot_info_t* mbd, unsigned int magic)
 {
+
+
 
 	fdTableInit();
 
@@ -53,7 +56,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	_lidt(&idtr);
 
-
+	startPaging();
 
 	_write(1, 0, 10);
 
@@ -87,6 +90,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	setPage(WORK_PAGE);
 	clearScreen();
+
 
 	_sti();
 
