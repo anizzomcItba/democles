@@ -24,6 +24,7 @@ void 	_read( int fd, void * buffer, size_t qty );
  */
 void	_flush(int fd);
 
+void 	_sleep();
 
 
 void		int_08_handler();      /* Timer tick */

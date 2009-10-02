@@ -13,6 +13,7 @@ GLOBAL _sti
 GLOBAL _lidt
 GLOBAL _in
 GLOBAL _out
+GLOBAL _sleep
 GLOBAL _read_cr0
 GLOBAL _read_cr3
 GLOBAL _write_cr3
@@ -260,6 +261,10 @@ int_74_handler:
 		iret
 
 
+_sleep:
+	hlt
+	ret
+
 mascaraPIC1:			; mascaraPIC1( mascara )
 	push    ebp		; Escribe mascara del PIC 1
         mov     ebp, esp
@@ -275,35 +280,6 @@ mascaraPIC2:			; mascaraPIC2( mascara )
         out	0A1h,al		; mascara al pic slave
         pop     ebp
         retn
-
-
-
-_read_cr0:
-	mov eax, cr0
-	retn
-
-
-_write_cr0:
-	push ebp
-	mov ebp, esp
-	mov eax, [ebp+8]
-	mov cr0,  eax
-	pop ebp
-	retn
-
-
-_read_cr3:
-	mov eax, cr3
-	retn
-
-
-_write_cr3:
-	push ebp
-	mov ebp, esp
-	mov eax, [ebp+8]
-	mov cr3, eax
-	pop ebp
-	retn
 
 
 
