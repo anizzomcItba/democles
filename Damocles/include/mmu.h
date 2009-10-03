@@ -16,4 +16,7 @@ unsigned int getPage(void);
 
 void freePage(unsigned int id);
 
+void enablePage(unsigned int id);
+
+void disablePage(unsigned int id);
 #endif /* MMU_H_ */
