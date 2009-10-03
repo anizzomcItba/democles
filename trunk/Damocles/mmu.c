@@ -133,6 +133,30 @@ freePage(unsigned int id)
 	return push(id);
 }
 
+void enablePage(unsigned int id)
+{
+	int dir_index;
+	int page_table_index;
+	getDirectoryPageTableIndex(id,&dir_index,&page_table_index);
+	page_entry * page_table;
+	page_table = (page_entry *)page_directory[dir_index];
+	page_table[page_table_index] |= 3;
+	return;
+
+}
+
+void disablePage(unsigned int id)
+{
+	int dir_index;
+	int page_table_index;
+	getDirectoryPageTableIndex(id,&dir_index,&page_table_index);
+	page_entry * page_table;
+	page_table = (page_entry *)page_directory[dir_index];
+	page_table[page_table_index] &= 0xFFFFFFF2;
+	return;
+
+}
+
 static void
 getDirectoryPageTableIndex(unsigned int id, int* dirPtr, int * pagePtr)
 {
