@@ -11,4 +11,6 @@ void timer_tick_handler();
 
 void fdTableInit();
 
+void bufferAdd(int fd, char input);
+
 #endif

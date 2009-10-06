@@ -15,3 +15,9 @@ c1:		in al, 74h
 		out 20h, al
 		pop eax
 		popa
+		
+		
+		
+	//TODO:
+Cambiar el driver viejo de video por el nuevo
+Adaptar todas las llamadas a funcion

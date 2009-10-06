@@ -2,7 +2,6 @@
  * keyboard.c
  *
  *  Created on: May 30, 2009
- *      Author: dgrandes
  */
 
 #include "keyboard.h"
@@ -11,6 +10,9 @@
 #include "../../include/sysasm.h"
 #include "../../include/kernel.h"
 #include "../../include/timer.h"
+
+
+#define KEYBOARD 8
 
 /*ScanCodes usados con permiso del grupo de Campbell, Rey, Amoros, Arqui 1 cuatrimestre 2008*/
 char SCtoASCIInum[0xff] =
@@ -135,7 +137,9 @@ keyboardRoutine( unsigned char scanCode )
 	{
 		/*moveCursor(scanCode);*/
 		input = getArrow(scanCode);
-		_write(STDIN,&input,1);
+
+		bufferAdd(KEYBOARD, input);
+		//_write(STDIN,&input,1);
 		return;
 	}
 
@@ -174,7 +178,11 @@ keyboardRoutine( unsigned char scanCode )
 	if ( buffer_index == BUFFER_LENGTH )
 			buffer_index = START_POS;
 
-	_write(STDIN,&input,1);
+	bufferAdd(KEYBOARD, input);
+	//_write(STDIN,&input,1);
+
+
+
 	return;
 
 

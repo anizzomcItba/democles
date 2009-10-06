@@ -58,8 +58,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	startPaging();
 
-	_write(1, 0, 10);
-
 /* Habilito interrupcion de timer tick*/
 
 	_cli();

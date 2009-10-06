@@ -32,12 +32,16 @@
  * Cantidad de File Descriptors existen el sistema.
  */
 
-#define MAX_FDS 5
+#define MAX_FDS 30
 
 /*
  * Tamaño de cada buffer.
  */
 #define BUFFER_SIZE	 25*80+25*40
+#define KEYBOARD 8
+
+
+typedef enum {TTY, FILE, TTY_CURSOR} fd_t;
 
 /*
  * Estructura del FileDescriptor:
@@ -61,14 +65,13 @@ typedef struct{
 	int bsize; //Tanaño del buffer
 	int head; //Cabeza del buffer. Apunta al primer caracter
 	int tail;	//Cola del buffer. A la proxima posicion libre | Tamaño de datos.
-	void (*flush)(size_t);	//Funcion de flush
+	fd_t type;
 	char circular;
 	char init;
 } fdT;
 
 
 static fdT fdTable[MAX_FDS];
-static char *err = "This file descriptor is NOT INITIALIZED!\n";
 
 typedef void *(*sysfT)(void **);
 
@@ -77,7 +80,6 @@ typedef void *(*sysfT)(void **);
 static int isBufferFull(int fd);
 static int isBufferEmpty(int fd);
 static char bufferRead(int fd);
-static void bufferAdd(int fd, char c);
 static void bufferFlush(int fd);
 
 
@@ -112,94 +114,100 @@ void *_dispatcher(int callnum, void **args){
 }
 
 
+int schedGetGlobalFd(fd){
+	switch(fd){
+	case STDOUT: return 0;
+	//8 Terminales
+	case STDIN: return KEYBOARD;
+	case CURSOR: return 9;
+	//8 Terminales
+	case CLIPBOARD: return 17;
+	}
+	return -1;
+}
+
 void fdTableInit(){
 
-	fdTable[STDOUT].head = 0;
-	fdTable[STDOUT].tail = 0;
-	fdTable[STDOUT].bsize = BUFFER_SIZE;
-	fdTable[STDOUT].flush =_vgetflush();
-	fdTable[STDOUT].init = 1;
-	fdTable[STDOUT].circular = 1;
+	fdTable[schedGetGlobalFd(STDOUT)].head = 0;
+	fdTable[schedGetGlobalFd(STDOUT)].tail = 0;
+	fdTable[schedGetGlobalFd(STDOUT)].bsize = BUFFER_SIZE;
+	fdTable[schedGetGlobalFd(STDOUT)].type = TTY;
+	fdTable[schedGetGlobalFd(STDOUT)].init = 1;
+	fdTable[schedGetGlobalFd(STDOUT)].circular = 1;
 
-	fdTable[STDIN].bsize = BUFFER_SIZE;
-	fdTable[STDIN].head = 0;
-	fdTable[STDIN].tail = 0;
-	fdTable[STDIN].flush = NULL;
-	fdTable[STDIN].init = 1;
-	fdTable[STDIN].circular = 1;
+	fdTable[KEYBOARD].bsize = BUFFER_SIZE;
+	fdTable[KEYBOARD].head = 0;
+	fdTable[KEYBOARD].tail = 0;
+	fdTable[KEYBOARD].init = 1;
+	fdTable[KEYBOARD].circular = 1;
 
-	fdTable[CURSOR].bsize = BUFFER_SIZE;
-	fdTable[CURSOR].head = 0;
-	fdTable[CURSOR].tail = 0;
-	fdTable[CURSOR].flush = _vgetcflush();
-	fdTable[CURSOR].init = 1;
-	fdTable[CURSOR].circular = 1;
+	fdTable[schedGetGlobalFd(CURSOR)].bsize = BUFFER_SIZE;
+	fdTable[schedGetGlobalFd(CURSOR)].head = 0;
+	fdTable[schedGetGlobalFd(CURSOR)].tail = 0;
+	fdTable[schedGetGlobalFd(CURSOR)].type = TTY_CURSOR;
+	fdTable[schedGetGlobalFd(CURSOR)].init = 1;
+	fdTable[schedGetGlobalFd(CURSOR)].circular = 1;
 
-	fdTable[CLIPBOARD].bsize = BUFFER_SIZE;
-	fdTable[CLIPBOARD].head = 0;
-	fdTable[CLIPBOARD].tail = 0;
-	fdTable[CLIPBOARD].flush = _cgetcflush();
-	fdTable[CLIPBOARD].circular = 0;
-	fdTable[CLIPBOARD].init = 1;
-
-	fdTable[MOUSE].bsize = BUFFER_SIZE;
-	fdTable[MOUSE].head = 0;
-	fdTable[MOUSE].tail = 0;
-	fdTable[MOUSE].flush = NULL;
-	fdTable[MOUSE].circular = 0;
-	fdTable[MOUSE].init = 0;
-
+	fdTable[schedGetGlobalFd(CLIPBOARD)].bsize = BUFFER_SIZE;
+	fdTable[schedGetGlobalFd(CLIPBOARD)].head = 0;
+	fdTable[schedGetGlobalFd(CLIPBOARD)].tail = 0;
+	fdTable[schedGetGlobalFd(CLIPBOARD)].circular = 0;
+	fdTable[schedGetGlobalFd(CLIPBOARD)].init = 1;
 
 }
 
 void syswrite(int fd, char *buffIn, size_t qty){
 
 	int i;
+	int globalfd = schedGetGlobalFd(fd);
 
-	if(!fdTable[fd].init){
-		_write(STDOUT, err, strlen(err));
+
+	if(!fdTable[globalfd].init){
+		//This should kill the caller
 		return;
 	}
 
-	if(fdTable[fd].circular != 0){
+	if(fdTable[globalfd].circular){
 		for(i = 0 ; i < qty ; i++){
-			if(buffIn[i] == '\n' || isBufferFull(fd))
-				bufferFlush(fd);
-			bufferAdd(fd, buffIn[i]);
+			if(buffIn[i] == '\n' || isBufferFull(globalfd))
+				bufferFlush(globalfd);
+			bufferAdd(globalfd, buffIn[i]);
 		}
 	}else
 	{
-		i = (qty < fdTable[fd].bsize)? qty : fdTable[fd].bsize;
-		memcpy(fdTable[fd].buffer, buffIn, i);
-		fdTable[fd].tail = i;
-		bufferFlush(fd);
+		i = (qty < fdTable[globalfd].bsize)? qty : fdTable[globalfd].bsize;
+		memcpy(fdTable[globalfd].buffer, buffIn, i);
+		fdTable[globalfd].tail = i;
+		bufferFlush(globalfd);
 	}
 }
 
 void sysread(int fd, char *buffOut, size_t qty){
 	int i;
 
-	if(fd > MAX_FDS || !fdTable[fd].init){
-		_write(STDOUT, err, strlen(err));
+	int globalfd = schedGetGlobalFd(fd);
+
+	if(fd > MAX_FDS || !fdTable[globalfd].init){
+		//This should kill the caller
 		return;
 	}
 
 
-	if (fdTable[fd].circular != 0){
+	if (fdTable[globalfd].circular){
 		for(i = 0 ; i < qty ; i++){
-			while(isBufferEmpty(fd)){ _sleep();};
-			buffOut[i] = bufferRead(fd);
+			while(isBufferEmpty(globalfd)){ _sleep();};
+			buffOut[i] = bufferRead(globalfd);
 		}
 	} else
 	{
-		i = (qty < i)? qty : fdTable[fd].tail;
-		memcpy(buffOut, fdTable[fd].buffer, i);
+		i = (qty < i)? qty : fdTable[globalfd].tail;
+		memcpy(buffOut, fdTable[globalfd].buffer, i);
 	}
 
 }
 
 int sysflush(int fd){
-	bufferFlush(fd);
+	bufferFlush(schedGetGlobalFd(fd));
 	return 1;
 }
 
@@ -207,7 +215,7 @@ static int isBufferFull(int fd){
 	return (fdTable[fd].tail + 1)%fdTable[fd].bsize == fdTable[fd].head%fdTable[fd].bsize;
 }
 
-static void bufferAdd(int fd, char c){
+void bufferAdd(int fd, char c){
 
 	/* Me posiciono en la proxima posicion */
 	int t = fdTable[fd].tail;
@@ -223,27 +231,30 @@ static void bufferAdd(int fd, char c){
 
 
 static void bufferFlush(int fd){
+	int i = 0;
+	char buffer[BUFFER_SIZE];
 
-	int qty;
-	int h;
-	int t;
-
-	if(fdTable[fd].circular) {
-		qty = 0;
-		h = fdTable[fd].head % fdTable[fd].bsize;
-		t = fdTable[fd].tail % fdTable[fd].bsize;
-
-		if(!isBufferEmpty(fd))
-			qty = (t < h)? fdTable[fd].bsize -(h-t) : (t-h);
-
+	if(fdTable[fd].circular){
+		while(!isBufferEmpty(fd))
+			buffer[i++] = bufferRead(fd);
 	}
-	else{
-		qty = fdTable[fd].tail;
-	}
+	else
+		memcpy(buffer, fdTable[fd].buffer, fdTable[fd].tail);
 
-	if (fdTable[fd].flush != NULL)
-		fdTable[fd].flush(qty);
+
+	switch(fdTable[fd].type){
+		case TTY:
+			_vtflush(fd, buffer, i);
+			break;
+		case TTY_CURSOR:
+			_vtcflush(fd-9, buffer, i); //TODO: Hay 8 terminales más el teclado
+			break;
+		case FILE:
+			//TODO: Implementar.
+			break;
+	}
 }
+
 
 static int isBufferEmpty(int fd){
 	return fdTable[fd].head == fdTable[fd].tail;
