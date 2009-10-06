@@ -1,7 +1,7 @@
 nasm -f aout -g loader.asm -o loader.o
 nasm -f aout -g sys.asm -o sysasm.o
 gcc -Wall -g  -m32 -c kernel.c -o kernel.o
-gcc -Wall -g  -m32 -c sys.c  -o sysc.o
+gcc -Wall -g  -m32 -c sys.c -fno-stack-protector -o sysc.o
 gcc -Wall -g  -m32 -c -fno-stack-protector drivers/video/crtc6845.c -o crtc6845.o
 gcc -Wall -g 	-m32 -c lib/string.c -o string.o
 gcc -Wall -g -m32 -c lib/video.c -o video.o
@@ -13,6 +13,8 @@ gcc -Wall -g -m32 -c drivers/timer/timer.c -o timer.o
 gcc -Wall -g -m32 -c -fno-stack-protector shell/shell.c -o shell.o
 gcc -Wall -g -m32 -c services/clipboard.c -o clipboard.o
 gcc -Wall -g -m32 -c services/fortune.c -o fortune.o
-ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o
+gcc -Wall -g -m32 -c mmu.c -o mmu.o
+gcc -Wall -g -m32 -c lib/stack.c -o stack.o
+ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o
 rm *.o
 mcopy -o kernel.bin a:/boot/

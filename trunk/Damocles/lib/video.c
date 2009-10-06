@@ -74,7 +74,7 @@ int copyQty;
  * Limpia la pantalla, seteando fondo negro y letras blancas.
  */
 void clearScreen(){
-	_vinitscreen();
+	_vresetpage(0); //TODO: Obtener la pantalla
 }
 
 /*
@@ -83,26 +83,30 @@ void clearScreen(){
  */
 void setCursor(char x, char y)
 {
+	coord_t t;
 
 	if (x < 0 || x > _vcols()-1 || y < 0 || y > _vrows()-1)
 		return;
-	_vsetcursor(x, y);
+	t.x = x;
+	t.y = y;
+	_vtsetcursor(0, t); //TODO: Obtener la pantalla
 }
 
 char getXc()
 {
-	return _vgetxcursor();
+	return _vgetcursor(0).x; //TODO: Acá se debería obtener la pantalla
 }
 char getYc(){
-	return _vgetycursor();
+	return _vgetcursor(0).y; //TODO: Acá se debería obtener la pantalla
 }
 
 void disablePen(){
-	_vsetpen(-1, -1);
+	_vdisblepen();
 }
 
 void setPen(char x, char y)
 {
+	coord_t t;
 	if (x < 0 )
 		x = 0;
 	else if (x > _vcols()-1)
@@ -112,14 +116,16 @@ void setPen(char x, char y)
 	else if ( y > _vrows()-1)
 		y = _vrows()-1;
 
-	_vsetpen(x, y);
+	t.x = x;
+	t.y = y;
+	_vsetpen(t);
 }
 
 char getXpen(){
-	return _vgetxpen();
+	return _vgetpen().x;
 }
 char getYpen(){
-	return _vgetypen();
+	return _vgetpen().y;
 }
 
 void resetSelection(){
@@ -127,12 +133,17 @@ void resetSelection(){
 }
 
 void selectScreen(char xi, char yi, char xe, char ye){
-	_vselect(xi, yi, xe, ye);
+	coord_t begin, end;
+	begin.x = xi;
+	begin.y = yi;
+	end.x = xe;
+	end.y = ye;
+	_vpaint(begin, end);
 
 }
 
 void copyScreen(char xi, char yi, char xe, char ye){
-	_vcopy(xi,yi,xe,ye);
+	//_vcopy(xi,yi,xe,ye);
 }
 
 /**
@@ -184,7 +195,7 @@ void putToCursor(char c){
 
 
 void scroll(){
-	_vscroll();
+	 _vscroll(0);
 }
 
 void updateMouseCursor(MOUSE_DATA * mData)
