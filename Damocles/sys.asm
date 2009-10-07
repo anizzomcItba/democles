@@ -25,7 +25,7 @@ EXTERN sysflush
 EXTERN keyboardRoutine
 EXTERN timerHandler
 EXTERN mouseRoutine
-EXTERN _dispatcher
+EXTERN _dispatcher80
 
 
 
@@ -132,7 +132,7 @@ new_int_80_handler:
 
 	push eax		;Systemcall
 
-	call _dispatcher
+	call _dispatcher80
 	; En eax debe dejar la
 	; respuesta
 

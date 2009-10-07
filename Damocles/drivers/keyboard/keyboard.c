@@ -6,7 +6,7 @@
 
 #include "keyboard.h"
 #include "../../include/defs.h"
-#include "../../include/sys.h"
+#include "../../include/io.h"
 #include "../../include/sysasm.h"
 #include "../../include/kernel.h"
 #include "../../include/timer.h"

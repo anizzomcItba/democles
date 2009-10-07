@@ -15,7 +15,9 @@ gcc -Wall -g -c services/clipboard.c -o clipboard.o
 gcc -Wall -g -m32 -c services/fortune.c -o fortune.o
 gcc -Wall -g -c mmu.c -o mmu.o
 gcc -Wall -g -c lib/stack.c -o stack.o
-ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o mouse.o stdio.o math.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o
+gcc -Wall -g -c IO.c -o IO.o -fno-stack-protector
+gcc -Wall -g  -c sched.c -o sched.o
+ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o mouse.o stdio.o math.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o  IO.o sched.o
 rm *.o
 
 
