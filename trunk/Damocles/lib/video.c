@@ -90,18 +90,18 @@ void setCursor(char x, char y)
 		return;
 	t.x = x;
 	t.y = y;
-	syssetCursor(&t);
+	setCursorCall(&t);
 }
 
 char getXc()
 {
 	coord_t t;
-	sysgetCursor(&t); //TODO: Pasar por syscall
+	getCursorCall(&t); //TODO: Pasar por syscall
 	return t.x;
 }
 char getYc(){
 	coord_t t;
-	sysgetCursor(&t);
+	getCursorCall(&t);
 	return t.y; //TODO: Pasar por syscall
 }
 
@@ -200,7 +200,7 @@ void putToCursor(char c){
 
 
 void scroll(){
-	 _vscroll(0);
+	 _vscroll(0); //TODO: Pasar por syscall
 }
 
 void updateMouseCursor(MOUSE_DATA * mData)

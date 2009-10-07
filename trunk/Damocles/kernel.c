@@ -36,7 +36,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	fdTableInit();
 
-	setCursor(0, 0);
 /* CARGA DE IDT CON LA RUTINA DE ATENCION DE IRQ0    */
 
 
@@ -67,8 +66,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 	mouseInitialize(callbck);
-
-	setPen(10,10);
 
 	/* 1 1 1 1 1 0 0 0
 	 * ? ? ? ? ? 2 K T  T = timer, K = Keyboard, 2 = IRQ2
