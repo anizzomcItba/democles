@@ -53,6 +53,11 @@ typedef struct {
 
 typedef  void (* mouseCallback)(MOUSE_DATA * mData );
 
+/* Coordenada espacial para guardar las posiciones del cursor */
+typedef struct {
+	int x;
+	int y;
+} coord_t;
 
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
 

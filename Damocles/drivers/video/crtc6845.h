@@ -7,13 +7,6 @@
 #define INV 0x70
 
 
-/* Coordenada espacial para guardar las posiciones del cursor */
-typedef struct {
-	int x;
-	int y;
-} coord_t;
-
-
 void _vtflush(int page, void *buff, size_t qty);
 void _vtcflush(int page, void *buff, size_t qty);
 void _vreset();
