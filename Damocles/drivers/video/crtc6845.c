@@ -346,6 +346,7 @@ void _vresetpage(int p){
 
 
 void _vreset(){
+	scrolled = 1;
 	rerenderVideo(activePage);
 }
 
