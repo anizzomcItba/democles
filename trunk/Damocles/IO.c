@@ -17,17 +17,19 @@
  * el recupero de la información con integridad. Este es el ejemplo de un porta-
  * papeles, donde mezclar las diferentes copias de los procesos simplemente
  * llevaría al caos y a la complejidad inneceseria de código. La vida útil de
- * este tipo de buffer es hasta que se realiza una nueva escritura, sobreescribiendo
- * la información anterior y seteando una marca hasta donde llega la información.
- * El otro tipo, el circular, es aquel en el cual los datos deben ser almacenados
- * hasta que sean leidos y es impresindible que esten ordenados en el orden que
- * llegaron y se mantengan, por lo tanto la vida util es hasta que se realice una
- * lectura del mismo.
+ * este tipo de buffer es hasta que se realiza una nueva escritura,
+ * sobreescribiendo la información anterior y seteando una marca hasta donde
+ * llega la información.
+ * El otro tipo, el circular, es aquel en el cual los datos deben ser
+ * almacenados hasta que sean leidos y es impresindible que esten ordenados en
+ * el orden que llegaron y se mantengan, por lo tanto la vida util es hasta que
+ * se realice una lectura del mismo.
  *
- * Luego de realizar una escritura, se le informa al dispositivo/módulo relaciónado
- * con el buffer a traves de un puntero a funcion que hay nueva información
- * disponible en el buffer. Permitiendo en futuras extensiones, que está funcion
- * sea cambiada y se le informe a un dispositivo distinto que hay información.
+ * Luego de realizar una escritura, se le informa al dispositivo/módulo
+ * relaciónado con el buffer a traves de un puntero a funcion que hay nueva
+ * información disponible en el buffer. Permitiendo en futuras extensiones, que
+ * está funcion sea cambiada y se le informe a un dispositivo distinto que hay
+ * información.
  */
 
 /*
@@ -172,7 +174,8 @@ int sysflush(int fd){
 }
 
 static int isBufferFull(int fd){
-	return (fdTable[fd].tail + 1)%fdTable[fd].bsize == fdTable[fd].head%fdTable[fd].bsize;
+	return (fdTable[fd].tail + 1)%fdTable[fd].bsize
+		== fdTable[fd].head%fdTable[fd].bsize;
 }
 
 void bufferAdd(int fd, char c){
@@ -204,10 +207,10 @@ static void bufferFlush(int fd){
 
 	switch(fdTable[fd].type){
 		case TTY:
-			_vtflush(fd, buffer, i);
+			_vtflush(schedAttachedTTY(), buffer, i);
 			break;
 		case TTY_CURSOR:
-			_vtcflush(fd-9, buffer, i); //TODO: Hay 8 terminales más el teclado
+			_vtcflush(schedAttachedTTY(), buffer, i);
 			break;
 		case FILE:
 			//TODO: Implementar.

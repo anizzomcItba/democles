@@ -1,7 +1,3 @@
-GLOBAL _write
-GLOBAL _read
-GLOBAL _flush
-GLOBAL new_int_80_handler
 GLOBAL int_80_handler
 GLOBAL int_08_handler
 GLOBAL int_09_handler
@@ -18,17 +14,12 @@ GLOBAL _read_cr0
 GLOBAL _read_cr3
 GLOBAL _write_cr3
 GLOBAL _write_cr0
+GLOBAL syscall
 
-EXTERN syswrite
-EXTERN sysread
-EXTERN sysflush
 EXTERN keyboardRoutine
 EXTERN timerHandler
 EXTERN mouseRoutine
-EXTERN _dispatcher80
-
-
-
+EXTERN _dispatcher
 
 
 SECTION .text
@@ -55,64 +46,36 @@ _lidt:				; Carga el IDTR
         pop     ebp
         retn
 
-_write:
-	push ebp
-	mov	ebp, esp
-	pusha
-
- 	mov ebx, [ebp+8]  ; file descriptor
- 	mov ecx, [ebp+12] ;	buffer
- 	mov edx, [ebp+16] ; cant
-
- 	mov eax, 01h
-
-	int 80h
-
-	popa
-	mov	esp, ebp
-	pop	ebp
-	ret
-
-_read:
-	push	ebp
-	mov	ebp, esp
-	pusha
-
-	mov ebx, [ebp+8]  ; file descriptor
- 	mov ecx, [ebp+12] ;	buffer
- 	mov edx, [ebp+16] ; cant
-
- 	mov eax, 00h
-
-	int 80h
-
-	popa
-	mov	esp, ebp
-	pop	ebp
-	ret
-
-;Realiza un flush del file descriptor indicado
-;enviando la información contenida en cada buffer
-;al destino correspondiente
-
-_flush:
+syscall:
 	push ebp
 	mov ebp, esp
-	pusha
 
-	mov ebx, [ebp+8] ; file descriptor
-	mov eax, 02h
+	push ebx
+	push ecx
+	push edx
+	push esi
+	push edi
+
+	mov eax, [ebp + 8] ; Syscall
+	mov ebx, [ebp + 12]; Arg1
+	mov ecx, [ebp + 16]; Arg2
+	mov edx, [ebp + 20]; Arg3
+	mov esi, [ebp + 24]; Arg4
+	mov edi, [ebp + 28]; Arg5
 
 	int 80h
 
-	popa
+	pop edi
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
 
 	mov esp, ebp
 	pop ebp
 	ret
 
-
-new_int_80_handler:
+int_80_handler:
 	push ebp
 	mov ebp, esp	;StackFrame
 
@@ -132,7 +95,7 @@ new_int_80_handler:
 
 	push eax		;Systemcall
 
-	call _dispatcher80
+	call _dispatcher
 	; En eax debe dejar la
 	; respuesta
 
@@ -144,42 +107,6 @@ new_int_80_handler:
 	iret
 
 
-int_80_handler:
-
-	push ebp
-	mov ebp, esp
-
-	sti
-
-	push edx 	;cant
-	push ecx	;buffer
-	push ebx 	;fd
-
-	cmp al, 00h ; read
-	je doread
-	cmp al, 01h ; write
-	je dowrite
-	cmp al, 02h ; flush
-	je doflush
-
-doflush:
-	call sysflush
-	jmp exit
-
-doread:
-	call sysread
-	jmp exit
-
-dowrite:
-	call syswrite
-	jmp exit
-
-exit:
-
-
-	mov esp, ebp
-	pop ebp
-	iret
 
 ;Retorna en ax lo que hay en el puerto pasado
 ;como parámetro

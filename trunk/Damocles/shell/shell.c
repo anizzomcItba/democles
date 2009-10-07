@@ -10,6 +10,7 @@
 #include "../include/timer.h"
 #include "../include/video.h"
 #include "../include/sysasm.h"
+#include "../include/syscall.h"
 #include "../include/fortune.h"
 #include "../include/mmu.h"
 
@@ -752,7 +753,7 @@ static void backSpace(){
 	char y = getYc();
 	setCursor(x, y);
 	putToCursor(' ');
-	_flush(CURSOR);
+	flush(CURSOR);
 	setCursor(x, y);
 }
 
@@ -769,7 +770,7 @@ updateShellBuffer(int qty )
 	int i;
 	char mybuff[2000];
 
-	_read(STDOUT,mybuff,qty);
+	read(STDOUT,mybuff,qty);
 
 	for(i = 0; i< qty; i++)
 	{
@@ -809,7 +810,7 @@ fetchCommand(char letra)
 		index = 0;
 		if ( hist_pos == 0 )
 			hist_pos = MAX_COMMANDS_HIST;
-		_write(STDIN,history[hist_pos-1],strlen(history[hist_pos-1]));
+		write(STDIN,history[hist_pos-1],strlen(history[hist_pos-1]));
 
 		hist_pos--;
 	}
@@ -823,7 +824,7 @@ fetchCommand(char letra)
 		index=0;
 		if(hist_pos == (MAX_COMMANDS_HIST -1))
 			hist_pos = -1;
-		_write(STDIN,history[hist_pos+1],strlen(history[hist_pos+1]));
+		write(STDIN,history[hist_pos+1],strlen(history[hist_pos+1]));
 
 		hist_pos++;
 

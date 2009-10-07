@@ -7,6 +7,11 @@
 #ifndef SCHED_H_
 #define SCHED_H_
 
+/* Retorna el indice de la tabla global de descriptores que tiene el proceso
+ * que la llama.
+ */
 int schedGetGlobalFd(int fd);
+/* Retorna la terminal a la cual está "atacheado" el proceso que la llama */
+int schedAttachedTTY();
 
 #endif /* SCHED_H_ */

@@ -16,3 +16,8 @@ int schedGetGlobalFd(int fd){
 	}
 	return -1;
 }
+
+
+int schedAttachedTTY(){
+	return 0; //TODO: Retornar la terminal atacheada.
+}
