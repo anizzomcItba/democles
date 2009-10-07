@@ -3,21 +3,22 @@
 #include "../include/sysasm.h"
 #include "../include/string.h"
 #include "../include/video.h"
+#include "../include/syscall.h"
 
 void kputchar(char c){
-	_write(STDOUT, &c, 1);
+	write(STDOUT, &c, 1);
 }
 
 char kgetchar()
 {
 	char c;
-	_read(STDIN,&c,1);
+	read(STDIN,&c,1);
 	return c;
 }
 void kprint(const char *str)
 {
-	_write(STDOUT, (char *)str, strlen(str));
-	_flush(STDOUT);
+	write(STDOUT, (char *)str, strlen(str));
+	flush(STDOUT);
 }
 
 /*
@@ -69,13 +70,13 @@ kprintf (const char *format, ...)
             }
         }
     }
-  _flush(CURSOR);
+  flush(CURSOR);
 }
 
 int getchar(){
 	char rta = 0;
 
-	_read(STDIN, &rta, 1);
+	read(STDIN, &rta, 1);
 	return rta;
 }
 

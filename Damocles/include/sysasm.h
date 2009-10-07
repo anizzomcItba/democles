@@ -14,18 +14,7 @@ void		_sti(void);	 /* Habilita interrupciones  */
 void	_out(dword port, dword value);
 dword	_in(dword port);
 
-void	_write( int fd, void * buffer, size_t qty );
-void 	_read( int fd, void * buffer, size_t qty );
-
-/*
- * Realiza una bajada de los buffers al dispositivo correspondiente. Si esto
- * no se hace, los buffers solamente se actualizan cuando se llenan o cuando
- * les llega un \n.
- */
-void	_flush(int fd);
-
 void 	_sleep();
-
 
 void		int_08_handler();      /* Timer tick */
 void		int_80_handler();

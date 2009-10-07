@@ -44,7 +44,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 	setup_IDT_entry (&idt[0x08], 0x08, (dword)&int_08_handler, ACS_INT, 0);
-	setup_IDT_entry (&idt[0x80], 0x08, (dword)&new_int_80_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x80], 0x08, (dword)&int_80_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x09], 0x08, (dword)&int_09_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x74], 0x08, (dword)&int_74_handler, ACS_INT, 0);
 

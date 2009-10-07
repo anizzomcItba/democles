@@ -11,9 +11,10 @@
 #include "../include/math.h"
 #include "../include/string.h"
 #include "../include/shell.h"
-#include "../include/sysasm.h"
-#include  "../include/clipboard.h"
-#include  "../include/stdio.h"
+#include "../include/sys.h"
+#include "../include/clipboard.h"
+#include "../include/stdio.h"
+#include "../include/syscall.h"
 
 /* Funci�n que dice qu� hacer cuando clicke�s el bot�n izquierdo*/
 
@@ -89,15 +90,19 @@ void setCursor(char x, char y)
 		return;
 	t.x = x;
 	t.y = y;
-	_vtsetcursor(0, t); //TODO: Obtener la pantalla
+	syssetCursor(&t);
 }
 
 char getXc()
 {
-	return _vgetcursor(0).x; //TODO: Acá se debería obtener la pantalla
+	coord_t t;
+	sysgetCursor(&t); //TODO: Pasar por syscall
+	return t.x;
 }
 char getYc(){
-	return _vgetcursor(0).y; //TODO: Acá se debería obtener la pantalla
+	coord_t t;
+	sysgetCursor(&t);
+	return t.y; //TODO: Pasar por syscall
 }
 
 void disablePen(){
@@ -190,7 +195,7 @@ void writeToCursor(char *str, char moveCursor)
  * posición y de ser necesario, se realiza un scroll en la pantalla.
  */
 void putToCursor(char c){
-	_write(CURSOR, &c, 1);
+	write(CURSOR, &c, 1);
 }
 
 
