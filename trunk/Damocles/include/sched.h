@@ -28,4 +28,6 @@ void schedSetUp();
 
 void schedTicks();
 
+void schedSleep(int miliseconds);
+
 #endif /* SCHED_H_ */

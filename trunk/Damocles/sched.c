@@ -180,9 +180,9 @@ byte* schedSchedule(){
 			 currentPid = pid;
 			 //Acá se deberían activar las páginas del nuevo proceso
 
-			 static char * video = (char*)0xB8000;
-			 static int k = 0;
-			 video[k+=2] = pid + '0';
+//			 static char * video = (char*)0xB8000;
+//			 static int k = 0;
+//			 video[k+=2] = pid + '0';
 
 			 return process[currentPid%MAX_PROCESS].ESP;
 		}

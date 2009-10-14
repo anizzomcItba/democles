@@ -18,6 +18,9 @@
 void testText(void);
 
 
+#include "include/sched.h"
+
+
 extern int default_layout;
 DESCR_INT idt[0x81];			/* IDT de 81h entradas*/
 IDTR idtr;				/* IDTR */
@@ -25,10 +28,17 @@ IDTR idtr;				/* IDTR */
 
 void foo(int argc, char *argv[]){
 	char *video =(char*) 0xB8000;
-	int i = 0;
+	int i = 0, j = 0;
+
+
 	while(1){
-		for(i = 0 ; i < 100 ; i+=2)
-			video[i++] = i;
+		for(i = 0 ; i < 160 ; i++){
+			video[i] = j++;
+			_cli();
+			schedSleep(1000);
+			_sti();
+			yield();
+		}
 	}
 }
 
@@ -104,7 +114,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 	schedCreateProcess("Lala", foo, stack1, NULL, NULL, 0, 0, NULL, 0, 0);
-	schedCreateProcess("Lala", foo, stack2, NULL, NULL, 0, 0, NULL, 0, 0);
+//	schedCreateProcess("Lala", foo, stack2, NULL, NULL, 0, 0, NULL, 0, 0);
 
 	_sti();
 
