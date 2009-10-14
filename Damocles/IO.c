@@ -157,7 +157,7 @@ void sysread(int fd, char *buffOut, size_t qty){
 
 	if (fdTable[globalfd].circular){
 		for(i = 0 ; i < qty ; i++){
-			while(isBufferEmpty(globalfd)){ _sleep();};
+			while(isBufferEmpty(globalfd)){ /*_sleep(); */};
 			buffOut[i] = bufferRead(globalfd);
 		}
 	} else

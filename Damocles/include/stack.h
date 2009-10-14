@@ -6,7 +6,7 @@
 #ifndef STACK_H_
 #define STACK_H_
 
-#define STACK_SIZE 10000
+#define STACK_SIZE 5000
 
 void push(unsigned int id);
 

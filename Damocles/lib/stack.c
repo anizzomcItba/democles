@@ -15,7 +15,7 @@ typedef struct{
 }stack_elem;
 
 // 2^20 posibles ids es igual  a  1048576
-#define STACK_SIZE 10000
+
 stack_elem stack[STACK_SIZE];
 int top = STACK_SIZE;
 

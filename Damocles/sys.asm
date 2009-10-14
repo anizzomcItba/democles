@@ -1,7 +1,9 @@
+GLOBAL int_7F_handler
 GLOBAL int_80_handler
 GLOBAL int_08_handler
 GLOBAL int_09_handler
 GLOBAL int_74_handler
+GLOBAL yield
 GLOBAL mascaraPIC1
 GLOBAL mascaraPIC2
 GLOBAL _cli
@@ -19,7 +21,11 @@ GLOBAL syscall
 EXTERN keyboardRoutine
 EXTERN timerHandler
 EXTERN mouseRoutine
+EXTERN schedSaveStack
+EXTERN schedSchedule
+EXTERN schedTicks
 EXTERN _dispatcher
+
 
 
 SECTION .text
@@ -148,21 +154,38 @@ _out:
 
 
 int_08_handler:
-	push ebp
-	mov ebp, esp
-	push eax
+	pushad
 
-	cli
-	call timerHandler
+	push esp
+	call schedSaveStack
+
+	call schedTicks
+
+	call schedSchedule
+	mov esp, eax
+
 
 	mov al, 20h ;manda EOI al 2020
 	out 20h, al
 
-	pop eax
-	mov esp, ebp
-	pop ebp
-	sti
+	popad
+
 	iret
+
+;yield
+int_7F_handler:
+	pushad
+
+	push esp
+	call schedSaveStack
+
+	call schedSchedule
+	mov esp, eax
+
+	popad
+
+	iret
+
 
 int_09_handler:
 		pusha
@@ -236,4 +259,6 @@ _write_cr3:
 	retn
 
 
-
+yield:
+	int 7Fh
+	ret
