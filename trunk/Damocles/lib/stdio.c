@@ -73,6 +73,55 @@ kprintf (const char *format, ...)
   flush(CURSOR);
 }
 
+
+void
+printf (const char *format, ...)
+{
+  char **arg = (char **) &format;
+  int c;
+  char buf[20];
+
+  arg++;
+
+  while ((c = *format++) != 0)
+    {
+      if (c != '%')
+    	  kputchar(c);
+      else
+        {
+          char *p;
+
+          c = *format++;
+          switch (c)
+            {
+            case 'd':
+            case 'u':
+            case 'x':
+              itoa (buf, c, *((int *) arg++));
+              p = buf;
+              goto string;
+              break;
+
+            case 's':
+              p = *arg++;
+              if (! p)
+                p = "(null)";
+
+            string:
+              while (*p)
+            	  kputchar(*p++);
+              break;
+
+            default:
+            	kputchar(*((int *) arg++));
+              break;
+            }
+        }
+    }
+  flush(STDOUT);
+}
+
+
 int getchar(){
 	char rta = 0;
 

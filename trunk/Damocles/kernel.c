@@ -11,6 +11,7 @@
 #include "include/timer.h"
 #include "include/clipboard.h"
 #include "include/mmu.h"
+#include "include/sched.h"
 
 
 #include "drivers/video/crtc6845.h" //TODO: Esta de debugeo esto
@@ -22,8 +23,17 @@ DESCR_INT idt[0x81];			/* IDT de 81h entradas*/
 IDTR idtr;				/* IDTR */
 
 
+void foo(int argc, char *argv[]){
+	char *video =(char*) 0xB8000;
+	int i = 0;
+	while(1){
+		for(i = 0 ; i < 100 ; i+=2)
+			video[i++] = i;
+	}
+}
 
-
+static char stack1[4096]; //TODO: Esto lo debería retornar el mmu
+static char stack2[4096];
 
 /**********************************************
 KERNEL
@@ -43,6 +53,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 	setup_IDT_entry (&idt[0x08], 0x08, (dword)&int_08_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x7F], 0x08, (dword)&int_7F_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x80], 0x08, (dword)&int_80_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x09], 0x08, (dword)&int_09_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x74], 0x08, (dword)&int_74_handler, ACS_INT, 0);
@@ -56,10 +67,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	_lidt(&idtr);
 
 	startPaging();
-
-/* Habilito interrupcion de timer tick*/
-
-	_cli();
 
 	mouseCallback callbck;
     callbck = &updateMouseCursor;
@@ -86,14 +93,26 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	setPage(WORK_PAGE);
 	clearScreen();
 
+	schedSetUp();
+
+
+
+
+	clearScreen();
+
+
+
+
+	schedCreateProcess("Lala", foo, stack1, NULL, NULL, 0, 0, NULL, 0, 0);
+	schedCreateProcess("Lala", foo, stack2, NULL, NULL, 0, 0, NULL, 0, 0);
 
 	_sti();
 
 
-	clearScreen();
 	setCursor(0, 0);
-
 	shell();
+
+
 
 	kprint("System Halted");
 	return 0;

@@ -9,5 +9,6 @@ int strlen(const char *str);
 void itoa (char *buf, int base, int d);
 int atoi (char * s);
 int strcmp(char * str1, char * str2 );
+void strcpy(char *dst, char *src);
 
 #endif

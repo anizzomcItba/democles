@@ -106,3 +106,6 @@ strcmp(char * str1, char * str2 )
 }
 
 
+void strcpy(char *dst, char *src){
+	memcpy(dst, src, strlen(src)+1);
+}

@@ -13,7 +13,6 @@ typedef unsigned int dir_entry;
 typedef unsigned int page_entry;
 
 
-
 //dir_entry  page_directory[1024];
 //page_entry page_tables[1024][1024];
 
@@ -40,7 +39,7 @@ void startPaging(void)
 		for(j = 0; j < 1024; j++)
 		{
 			//Seteo la entrada, todo lo que sea de los primeros 8 megas no los habilito
-			if(i == 0 || i== 1)
+			if(i <= 1)
 			{
 				page_tables[j] = address | 3;
 				pop();
@@ -48,11 +47,11 @@ void startPaging(void)
 			else
 				page_tables[j] = address | 2;
 
-			address += 4096;
+			address += MEM_PAGE_SIZE;
 
 		}
 		page_directory[i] =  (dir_entry)page_tables;
-		page_tables += 4096;
+		page_tables += MEM_PAGE_SIZE;
 		if(i == 0 || i == 1)
 			page_directory[i] = page_directory[i] | 3;
 		else
@@ -68,12 +67,12 @@ void startPaging(void)
 
 static void startAllocator(void)
 {
-	 int id = 4096*(STACK_SIZE -1);
+	 int id = MEM_PAGE_SIZE*(STACK_SIZE -1);
 	int i;
 	for(i= 0;i < STACK_SIZE; i++)
 	{
 		push(id);
-		id -= 4096;
+		id -= MEM_PAGE_SIZE;
 	}
 
 }
@@ -96,15 +95,16 @@ getPage(void)
 	page_entry * page_table;
 	page_table = (page_entry *)page_directory[dir_index];
 
-	if((page_table[page_table_index] & 3 ) == 3)
-		kprintf("Esa entrada de la tabla de pagina ya estaba presente!!!!");
+	if((page_table[page_table_index] & 3 ) == 3){
+		//kprintf("Esa entrada de la tabla de pagina ya estaba presente!!!!");
+	}
 	else
 		page_table[page_table_index] |= 3;
 
 
-	kprintf("dir index = %d, page table = %d\n",dir_index,page_table_index);
-	kprintf("La entrada en el dir %x\n",page_directory[dir_index]);
-	kprintf("La entrada en la tabla de pag %x\n",page_table[page_table_index]);
+//	kprintf("dir index = %d, page table = %d\n",dir_index,page_table_index);
+//	kprintf("La entrada en el dir %x\n",page_directory[dir_index]);
+//	kprintf("La entrada en la tabla de pag %x\n",page_table[page_table_index]);
 	return resp;
 
 
