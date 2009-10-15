@@ -25,6 +25,11 @@ void flush(int fd);
 void getCursorCall(coord_t *t);
 void setCursorCall(coord_t *t);
 
+
+
+/* Scheduler Syscalls */
+
+void sleep(int milliseconds);
 dword syscall(dword sysnum, dword arg1, dword arg2, dword arg3,dword arg4,
 		dword arg5);
 

@@ -310,10 +310,13 @@ static void copyLine(i){
 		video[i*VIDEO_COLS*2 + j] = videopages[activePage][i*VIDEO_COLS*2 +j];
 }
 
-
+/* Cambia la página activa, la que va a actualizar el video cada vez que haya
+ * una escritura.
+ */
 void _vsetpage(int p){
 
-	if(!(0 <= p && p < CANT_PAGES))
+	/* Si la página es inválida, o ya está activa, no hago nada */
+	if(!(0 <= p && p < CANT_PAGES) || p == activePage)
 		return;
 
 	activePage = p;

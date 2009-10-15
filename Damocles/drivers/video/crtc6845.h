@@ -10,6 +10,7 @@
 void _vtflush(int page, void *buff, size_t qty);
 void _vtcflush(int page, void *buff, size_t qty);
 void _vreset();
+void _vinit();
 coord_t _vgetcursor(int page);
 void _vtsetcursor(int page, coord_t coord);
 void _vsetpage(int p);

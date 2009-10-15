@@ -21,10 +21,11 @@ typedef unsigned int dword;
 #define ACS_INT         ( ACS_PRESENT | ACS_INT_386 )
 
 
-#define STDOUT	0		/* File Descriptors */
-#define STDIN	1
-#define CLIPBOARD	2
-#define CURSOR	3
+/* File Descriptors */
+#define STDIN	0
+#define STDOUT	1
+#define CURSOR	2
+#define CLIPBOARD 3
 #define MOUSE	4
 
 #define NULL (void *)0
