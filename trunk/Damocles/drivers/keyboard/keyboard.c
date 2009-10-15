@@ -10,6 +10,7 @@
 #include "../../include/sysasm.h"
 #include "../../include/kernel.h"
 #include "../../include/timer.h"
+#include "../video/crtc6845.h"
 
 
 #define KEYBOARD 8
@@ -120,6 +121,7 @@ static int isArrow(unsigned char scanCode );
 
 static char getArrow(unsigned char scanCode );
 
+static int isFunctionKey(unsigned char sc);
 
 static void setLEDS( void );
 
@@ -133,13 +135,20 @@ keyboardRoutine( unsigned char scanCode )
 		return;
 
 
+	/* Atrapamos CNTROL + Fx para pasar a la terminal x */
+	if(isFunctionKey(scanCode) && control == PRESSED){
+		_vsetpage(scanCode - 0x3B);
+		return;
+	}
+
 	if ( isArrow( scanCode ) )
 	{
 		/*moveCursor(scanCode);*/
 		input = getArrow(scanCode);
 
+		/* Coloca la tecla en el buffer de teclado IO.c */
 		bufferAdd(KEYBOARD, input);
-		//_write(STDIN,&input,1);
+
 		return;
 	}
 
@@ -178,10 +187,8 @@ keyboardRoutine( unsigned char scanCode )
 	if ( buffer_index == BUFFER_LENGTH )
 			buffer_index = START_POS;
 
+	/* Coloca la tecla en el buffer de teclado IO.c */
 	bufferAdd(KEYBOARD, input);
-	//_write(STDIN,&input,1);
-
-
 
 	return;
 
@@ -277,10 +284,13 @@ specialKey(unsigned char scanCode )
 		case SCROLL_LOCKUP:
 				break;
 
-		case CONTROL:
-				control = 1;
+		case LCNTRL:
+				control = PRESSED;
 				break;
 
+		case LCNTRLUP:
+				control = RELEASED;
+				break;
 		default: return 0;
 	}
 	return 1;
@@ -301,6 +311,12 @@ isArrow( unsigned char scanCode )
 {
 	return scanCode == ARROW_DOWN || scanCode == ARROW_UP ||
 		scanCode == ARROW_LEFT || scanCode == ARROW_RIGHT;
+}
+
+
+static int
+isFunctionKey(unsigned char sc){
+	return sc >= 0x3B && sc <= 0x42;
 }
 
 static char
@@ -330,13 +346,13 @@ setLEDS( )
 
 	led = ( caps << 2 | num << 1 | scroll );
 
-	_cli();
+//	_cli(); Ya se está dentro de una interrupcion.
 	_out( KEYBOARD_PORT , SET_INDICATORS );
 
 	while( _in(KEYBOARD_PORT ) != ACK );
 
 	_out( KEYBOARD_PORT, led );
-	_sti();
+//	_sti();
 
 }
 

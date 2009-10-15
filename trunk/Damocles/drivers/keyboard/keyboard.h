@@ -2,7 +2,6 @@
  * keyboard.h
  *
  *  Created on: May 30, 2009
- *      Author: dgrandes
  */
 
 #ifndef KEYBOARD_H_
@@ -57,7 +56,12 @@ int(* _keyIsBufferReady())(void);
 #define SHIFT_RELEASED 0
 
 
-#define CONTROL 0xE0
+#define LCNTRL 0x1D
+#define LCNTRLUP 0x9D
+
+#define PRESSED 1
+#define RELEASED 0
+
 #define ESC 	0x01
 
 #define F1	0xB3
