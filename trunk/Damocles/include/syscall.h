@@ -9,6 +9,8 @@
 #define SYS_WRITE 1
 #define SYS_FLUSH 2
 
+#define SYS_SLEEP 10
+
 #define SYS_SET_CURSOR 25
 #define SYS_GET_CURSOR 26
 

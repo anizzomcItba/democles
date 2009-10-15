@@ -11,6 +11,7 @@
 #include "include/timer.h"
 #include "include/clipboard.h"
 #include "include/mmu.h"
+#include "include/syscall.h"
 #include "include/sched.h"
 
 
@@ -34,10 +35,7 @@ void foo(int argc, char *argv[]){
 	while(1){
 		for(i = 0 ; i < 160 ; i++){
 			video[i] = j++;
-			_cli();
-			schedSleep(1000);
-			_sti();
-			yield();
+			sleep(2000);
 		}
 	}
 }
