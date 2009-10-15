@@ -7,12 +7,14 @@
 #include "include/shell.h"
 #include "drivers/mouse/mouse.h"
 #include "drivers/keyboard/keyboard.h"
+#include "drivers/video/crtc6845.h"
 #include "include/stdio.h"
 #include "include/timer.h"
 #include "include/clipboard.h"
 #include "include/mmu.h"
 #include "include/syscall.h"
 #include "include/sched.h"
+#include "include/syscall.h"
 
 
 #include "drivers/video/crtc6845.h" //TODO: Esta de debugeo esto
@@ -35,13 +37,13 @@ void foo(int argc, char *argv[]){
 	while(1){
 		for(i = 0 ; i < 160 ; i++){
 			video[i] = j++;
-			sleep(2000);
+			sleep(1000);
 		}
 	}
 }
 
 static char stack1[4096]; //TODO: Esto lo debería retornar el mmu
-static char stack2[4096];
+//static char stack2[4096];
 
 /**********************************************
 KERNEL
@@ -53,6 +55,10 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 	fdTableInit();
+	schedSetUp();
+
+
+
 
 /* CARGA DE IDT CON LA RUTINA DE ATENCION DE IRQ0    */
 
@@ -74,7 +80,11 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	_lidt(&idtr);
 
+
+
 	startPaging();
+
+
 
 	mouseCallback callbck;
     callbck = &updateMouseCursor;
@@ -104,17 +114,16 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	_vinit();
 	clearScreen();
 
-	schedSetUp();
 
 
-
-	schedCreateProcess("Lala", foo, stack1, NULL, NULL, 0, 0, NULL, 0, 0);
+//	schedCreateProcess("Lala", foo, stack1, NULL, NULL, 0, 0, NULL, 0, 0);
 //	schedCreateProcess("Lala", foo, stack2, NULL, NULL, 0, 0, NULL, 0, 0);
 
 	_sti();
 
 
 	setCursor(0, 0);
+
 	shell();
 
 

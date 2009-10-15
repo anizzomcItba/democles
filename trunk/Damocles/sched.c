@@ -3,6 +3,7 @@
 #include "include/defs.h"
 #include "include/string.h"
 #include "include/mmu.h"
+#include "include/io.h"
 #include "include/sysasm.h"
 
 #define KEYBOARD 8
@@ -86,7 +87,7 @@ void schedTicks(){
 		 * esperando. Si estan esperando decremento el contador
 		 */
 		if(process[pid%MAX_PROCESS].status == WAITING){
-			if(--process[pid%MAX_PROCESS].watingTicks){
+			if(!--process[pid%MAX_PROCESS].watingTicks){
 				/* Si el contador llego a cero, el proceso esta listo
 				 * para volver a ejecutar.
 				 */
@@ -166,6 +167,8 @@ byte* schedSchedule(){
 	 * estallar*/
 	int pid, startingPid = schedCurrentProcess();
 
+	pid = startingPid;
+
 	/* Si el proceso actual estaba corriendo, es que esta listo para
 	 * seguir corriendo */
 	if(process[currentPid%MAX_PROCESS].status == RUNNING)
@@ -173,7 +176,7 @@ byte* schedSchedule(){
 
 
 	while(1){
-		pid = process[startingPid%MAX_PROCESS].nextProcess;
+		pid = process[pid%MAX_PROCESS].nextProcess;
 		if(process[pid%MAX_PROCESS].status == READY){
 
 			//Acá se deberían desactivar las páginas del proceso actual
@@ -215,9 +218,9 @@ void schedSetUp(){
 	process[0].status = RUNNING;
 	process[0].nextProcess = 0;
 	process[0].attachedTTY = 0;
-	process[0].fds[STDOUT] = 0;
-	process[0].fds[STDIN] = 8;
-	process[0].fds[CURSOR] = 9;
+	process[0].fds[STDIN] = IN_0;
+	process[0].fds[STDOUT] = TTY_0;
+	process[0].fds[CURSOR] = TTY_CURSOR_0;
 
 	return;
 }
@@ -236,15 +239,7 @@ int schedCurrentProcess(){
 }
 
 int schedGetGlobalFd(int fd){
-	switch(fd){
-	case STDOUT: return 0;
-	//8 Terminales
-	case STDIN: return KEYBOARD;
-	case CURSOR: return 9;
-	//8 Terminales
-	case CLIPBOARD: return 17;
-	}
-	return -1;
+	return process[currentPid%MAX_PROCESS].fds[fd];
 }
 
 
@@ -263,7 +258,7 @@ static int getFreeSlot(){
 void schedSleep(int milliseconds){
 	if(milliseconds > 0) {
 		process[currentPid%MAX_PROCESS].status = WAITING;
-		process[currentPid%MAX_PROCESS].watingTicks = 18.2*((milliseconds+1)/1000);
+		process[currentPid%MAX_PROCESS].watingTicks = 18.2*((milliseconds+1)/1000) + 1;
 	}
 	return;
 }

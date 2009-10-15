@@ -45,7 +45,7 @@
 #define KEYBOARD 8
 
 
-typedef enum {TTY, FILE, TTY_CURSOR} fd_t;
+typedef enum {TTY, FILE, TTY_CURSOR, IN_KEYBOARD} fd_t;
 
 /*
  * Estructura del FileDescriptor:
@@ -72,6 +72,7 @@ typedef struct{
 	fd_t type;
 	char circular;
 	char init;
+	int referenceCount;
 } fdT;
 
 
@@ -87,34 +88,40 @@ static char bufferRead(int fd);
 static void bufferFlush(int fd);
 
 
-
 void fdTableInit(){
 
-	fdTable[schedGetGlobalFd(STDOUT)].head = 0;
-	fdTable[schedGetGlobalFd(STDOUT)].tail = 0;
-	fdTable[schedGetGlobalFd(STDOUT)].bsize = BUFFER_SIZE;
-	fdTable[schedGetGlobalFd(STDOUT)].type = TTY;
-	fdTable[schedGetGlobalFd(STDOUT)].init = 1;
-	fdTable[schedGetGlobalFd(STDOUT)].circular = 1;
+	int i;
 
-	fdTable[KEYBOARD].bsize = BUFFER_SIZE;
-	fdTable[KEYBOARD].head = 0;
-	fdTable[KEYBOARD].tail = 0;
-	fdTable[KEYBOARD].init = 1;
-	fdTable[KEYBOARD].circular = 1;
+	for(i = 0; i < _vpagesqty() ; i++){
+		/* Inicialización de las entradas del teclado */
+		fdTable[IN_0 + i].bsize = BUFFER_SIZE;
+		fdTable[IN_0 + i].head = 0;
+		fdTable[IN_0 + i].tail = 0;
+		fdTable[IN_0 + i].init = 1;
+		fdTable[IN_0 + i].type = IN_KEYBOARD;
+		fdTable[IN_0 + i].circular = 1;
+		fdTable[IN_0 + i].referenceCount = 1;
 
-	fdTable[schedGetGlobalFd(CURSOR)].bsize = BUFFER_SIZE;
-	fdTable[schedGetGlobalFd(CURSOR)].head = 0;
-	fdTable[schedGetGlobalFd(CURSOR)].tail = 0;
-	fdTable[schedGetGlobalFd(CURSOR)].type = TTY_CURSOR;
-	fdTable[schedGetGlobalFd(CURSOR)].init = 1;
-	fdTable[schedGetGlobalFd(CURSOR)].circular = 1;
+		/* Inicialización de las salidas default de TTY */
+		fdTable[TTY_0 + i].head = 0;
+		fdTable[TTY_0 + i].tail = 0;
+		fdTable[TTY_0 + i].bsize = BUFFER_SIZE;
+		fdTable[TTY_0 + i].type = TTY;
+		fdTable[TTY_0 + i].init = 1;
+		fdTable[TTY_0 + i].circular = 1;
+		fdTable[TTY_0 + i].referenceCount = 1;
 
-	fdTable[schedGetGlobalFd(CLIPBOARD)].bsize = BUFFER_SIZE;
-	fdTable[schedGetGlobalFd(CLIPBOARD)].head = 0;
-	fdTable[schedGetGlobalFd(CLIPBOARD)].tail = 0;
-	fdTable[schedGetGlobalFd(CLIPBOARD)].circular = 0;
-	fdTable[schedGetGlobalFd(CLIPBOARD)].init = 1;
+
+		/* Inicialización de las salida cursor de TTY */
+		fdTable[TTY_CURSOR_0 + i].bsize = BUFFER_SIZE;
+		fdTable[TTY_CURSOR_0 + i].head = 0;
+		fdTable[TTY_CURSOR_0 + i].tail = 0;
+		fdTable[TTY_CURSOR_0 + i].type = TTY_CURSOR;
+		fdTable[TTY_CURSOR_0 + i].init = 1;
+		fdTable[TTY_CURSOR_0 + i].circular = 1;
+		fdTable[TTY_CURSOR_0 + i].referenceCount = 1;
+	}
+
 
 }
 
@@ -214,6 +221,8 @@ static void bufferFlush(int fd){
 			break;
 		case FILE:
 			//TODO: Implementar.
+			break;
+		case IN_KEYBOARD:
 			break;
 	}
 }
