@@ -24,3 +24,7 @@ void getCursorCall(coord_t *t){
 void setCursorCall(coord_t *t){
 	syscall(SYS_SET_CURSOR, (dword)t,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
 }
+
+void sleep(int miliseconds){
+	syscall(SYS_SLEEP,(dword) miliseconds,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
+}

@@ -260,9 +260,11 @@ static int getFreeSlot(){
 }
 
 
-void schedSleep(int miliseconds){
-	process[currentPid%MAX_PROCESS].status = WAITING;
-	process[currentPid%MAX_PROCESS].watingTicks = 55*miliseconds;
+void schedSleep(int milliseconds){
+	if(milliseconds > 0) {
+		process[currentPid%MAX_PROCESS].status = WAITING;
+		process[currentPid%MAX_PROCESS].watingTicks = 18.2*((milliseconds+1)/1000);
+	}
 	return;
 }
 
