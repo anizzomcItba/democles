@@ -101,15 +101,12 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 	setPage(WORK_PAGE);
+
+	/* Inicialización de todas las terminales */
+	_vinit();
 	clearScreen();
 
 	schedSetUp();
-
-
-
-
-	clearScreen();
-
 
 
 
