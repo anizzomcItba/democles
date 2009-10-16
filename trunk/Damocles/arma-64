@@ -19,6 +19,7 @@ gcc -Wall -g -m32 -c IO.c -o IO.o -fno-stack-protector -fno-builtin
 gcc -Wall -g -m32 -c sched.c -o sched.o -fno-builtin
 gcc -Wall -g -m32 -c sysvideo.c -o sysvideo.o -fno-builtin
 gcc -Wall -g -m32 -c syscall.c -o syscall.o -fno-builtin
-ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o
+gcc -Wall -g -m32 -c ttys.c -o ttys.o -fno-builtin
+ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o
 rm *.o
 mcopy -o kernel.bin a:/boot/

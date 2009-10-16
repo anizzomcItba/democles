@@ -75,7 +75,7 @@ int copyQty;
  * Limpia la pantalla, seteando fondo negro y letras blancas.
  */
 void clearScreen(){
-	_vresetpage(0); //TODO: Obtener la pantalla
+	clearScreenCall();
 }
 
 /*

@@ -10,7 +10,7 @@
 #include "../../include/sysasm.h"
 #include "../../include/kernel.h"
 #include "../../include/timer.h"
-#include "../video/crtc6845.h"
+#include "../../include/tty.h"
 
 
 #define KEYBOARD 8
@@ -137,7 +137,7 @@ keyboardRoutine( unsigned char scanCode )
 
 	/* Atrapamos CNTROL + Fx para pasar a la terminal x */
 	if(isFunctionKey(scanCode) && control == PRESSED){
-		_vsetpage(scanCode - 0x3B);
+		ttySetActive(scanCode - 0x3B);
 		return;
 	}
 
@@ -147,7 +147,7 @@ keyboardRoutine( unsigned char scanCode )
 		input = getArrow(scanCode);
 
 		/* Coloca la tecla en el buffer de teclado IO.c */
-		bufferAdd(IN_0, input); //TODO
+		bufferAdd(IN_0 + ttyGetActive(), input); //TODO
 
 		return;
 	}
@@ -188,7 +188,7 @@ keyboardRoutine( unsigned char scanCode )
 			buffer_index = START_POS;
 
 	/* Coloca la tecla en el buffer de teclado IO.c */
-	bufferAdd(IN_0, input); //TODO:
+	bufferAdd(IN_0 + ttyGetActive(), input); //TODO:
 
 	return;
 
