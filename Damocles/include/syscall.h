@@ -13,6 +13,7 @@
 
 #define SYS_SET_CURSOR 25
 #define SYS_GET_CURSOR 26
+#define SYS_CLEARSCREEN 27
 
 /* IO Syscalls */
 void write(int fd, void *buff, int qty);
@@ -24,6 +25,7 @@ void flush(int fd);
 
 void getCursorCall(coord_t *t);
 void setCursorCall(coord_t *t);
+void clearScreenCall();
 
 
 

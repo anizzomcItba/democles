@@ -105,8 +105,6 @@ void schedTicks(){
 int schedCreateProcess(char *name, process_t p, void *stack, void *heap,
 		int fds[],int files, int argc, char **argv, int tty, int orphan){
 
-	_cli(); //TODO
-
 	context_t context;
 	int i = 0, j= 0;
 	int slot = getFreeSlot();
@@ -149,8 +147,6 @@ int schedCreateProcess(char *name, process_t p, void *stack, void *heap,
 	context.argc = j;
 	context.pArgv = (dword) process[slot].ESP;
 	process[slot].ESP = push(process[slot].ESP, (byte*)&context, sizeof(context_t));
-
-	_sti();
 
 	return process[slot].pid;
 }
