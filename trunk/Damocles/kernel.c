@@ -17,6 +17,7 @@
 #include "include/syscall.h"
 #include "include/io.h"
 #include "include/tty.h"
+#include "include/process.h"
 
 #include "drivers/video/crtc6845.h" //TODO: Esta de debugeo esto
 void testText(void);
@@ -35,6 +36,8 @@ void foo(int argc, char *argv[]){
 	int i = 0, j = 0;
 
 	printf("La cantidad de Args es: %d\n", argc);
+	for (i = 0 ; i < argc; i++)
+		printf("%s\n", argv[i]);
 
 	while(1){
 		for(i = 0 ; i < 160 ; i++){
@@ -44,15 +47,11 @@ void foo(int argc, char *argv[]){
 	}
 }
 
-static char stack1[4096]; //TODO: Esto lo debería retornar el mmu
+//static char stack1[4096]; //TODO: Esto lo debería retornar el mmu
 static char shellstack0[4096];
 static char shellstack1[4096];
-static char shellstack2[4096];
-static char shellstack3[4096];
-static char shellstack4[4096];
-static char shellstack5[4096];
-static char shellstack6[4096];
-static char shellstack7[4096];
+static char stack[4096];
+
 
 /**********************************************
 KERNEL
@@ -65,6 +64,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	fdTableInit();
 	schedSetUp();
+	procSetup();
 
 
 
@@ -130,24 +130,20 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	fds[STDOUT] = TTY_0;
 	fds[CURSOR] = TTY_CURSOR_0;
 
+	procCreate("Shell- 0", (process_t)shell, shellstack0, NULL, fds, 3, 0, NULL, 0, 0, 0);
 
-
-
-	//char *args[] = { "Argumento1", "Argumento2", "Argumento3"};
-
-	//schedCreateProcess("Lala", foo, stack1, NULL, fds, 3, 3, args, 0, 0);
-
-
-
-	schedCreateProcess("Shell- 0", shell, shellstack0, NULL, fds, 3, 0, NULL, 0, 0);
 
 	fds[STDIN] = IN_1;
 	fds[STDOUT] = TTY_1;
 	fds[CURSOR] = TTY_CURSOR_1;
 
 
-	schedCreateProcess("Shell- 1", shell, shellstack1, NULL, fds, 3, 0, NULL, 1, 0);
 
+	procCreate("Shell- 1", (process_t)shell, shellstack1, NULL, fds, 3, 0, NULL, 1, 0, 0);
+
+
+	char *args[] = { "Argumento1", "Argumento2", "Argumento3"};
+	procCreate("foo", foo, stack, NULL, fds, 3, 3, args, 0, 0, 0);
 
 	_sti();
 
@@ -155,7 +151,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	//setCursor(0, 0);
 
 	while(1){
-		sleep(10);
+		sleep(100000);
 	}
 
 	kprint("System Halted");
