@@ -3,6 +3,7 @@
 #include "include/sched.h"
 #include "include/defs.h"
 #include "include/io.h"
+#include "include/process.h"
 
 void *sysfRead(void **args);
 void *sysfWrite(void **args);
@@ -34,7 +35,7 @@ void *sysfsetCursor(void **args){
 }
 
 void *sysfclearScreen(void **args){
-	_vresetpage(schedAttachedTTY());
+	_vresetpage(procAttachedTTY(schedCurrentProcess()));
 	return NULL;
 }
 

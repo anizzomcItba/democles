@@ -6,13 +6,14 @@
 
 #include "include/sys.h"
 #include "include/sched.h"
+#include "include/process.h"
 #include "drivers/video/crtc6845.h"
 
 void syssetCursor(coord_t *t){
-	_vtsetcursor(schedAttachedTTY(), *t);
+	_vtsetcursor(procAttachedTTY(schedCurrentProcess()), *t);
 }
 
 void sysgetCursor(coord_t *t){
-	*t = _vgetcursor(schedAttachedTTY());
+	*t = _vgetcursor(procAttachedTTY(schedCurrentProcess()));
 }
 

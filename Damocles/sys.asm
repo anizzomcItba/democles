@@ -21,7 +21,7 @@ GLOBAL syscall
 EXTERN keyboardRoutine
 EXTERN timerHandler
 EXTERN mouseRoutine
-EXTERN schedSaveStack
+EXTERN procSaveStack
 EXTERN schedSchedule
 EXTERN schedTicks
 EXTERN _dispatcher
@@ -157,7 +157,7 @@ int_08_handler:
 	pushad
 
 	push esp
-	call schedSaveStack
+	call procSaveStack
 
 	call schedTicks
 
@@ -177,7 +177,7 @@ int_7F_handler:
 	pushad
 
 	push esp
-	call schedSaveStack
+	call procSaveStack
 
 	call schedSchedule
 	mov esp, eax

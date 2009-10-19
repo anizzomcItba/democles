@@ -7,6 +7,9 @@
 #ifndef SCHED_H_
 #define SCHED_H_
 
+
+typedef enum {WAITING, BLOCKED, READY, RUNNING, DEAD, FREE, ZOMBIE} status_t;
+
 /* Retorna el indice de la tabla global de descriptores que tiene el proceso
  * que la llama.
  */
@@ -29,5 +32,25 @@ void schedSetUp();
 void schedTicks();
 
 void schedSleep(int miliseconds);
+
+int schedSetPriority(int pid, int priority);
+
+int schedGetPriority(int pid);
+
+void schedAdd(int pid, char *name, int priority);
+
+int schedRemove(int pid);
+
+int schedBlock(int pid);
+
+int schedContinue(int pid);
+
+void schedChangeStatus(int pid, status_t status);
+
+void schedSetUpInit(int pid, char *name, int priroty);
+
+void schedSetUpIdle(int pid, char *name, int priroty);
+
+
 
 #endif /* SCHED_H_ */

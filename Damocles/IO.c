@@ -2,6 +2,7 @@
 #include "include/string.h"
 #include "include/defs.h"
 #include "include/sched.h"
+#include "include/process.h"
 #include "include/clipboard.h"
 #include "include/io.h"
 #include "include/sysasm.h"
@@ -128,7 +129,7 @@ void fdTableInit(){
 void syswrite(int fd, char *buffIn, size_t qty){
 
 	int i;
-	int globalfd = schedGetGlobalFd(fd);
+	int globalfd = procGetFD(fd);
 
 
 	if(!fdTable[globalfd].init){
@@ -154,7 +155,7 @@ void syswrite(int fd, char *buffIn, size_t qty){
 void sysread(int fd, char *buffOut, size_t qty){
 	int i;
 
-	int globalfd = schedGetGlobalFd(fd);
+	int globalfd = procGetFD(fd);
 
 	if(fd > MAX_FDS || !fdTable[globalfd].init){
 		//This should kill the caller
@@ -176,7 +177,7 @@ void sysread(int fd, char *buffOut, size_t qty){
 }
 
 int sysflush(int fd){
-	bufferFlush(schedGetGlobalFd(fd));
+	bufferFlush(procGetFD(fd));
 	return 1;
 }
 
@@ -214,10 +215,10 @@ static void bufferFlush(int fd){
 
 	switch(fdTable[fd].type){
 		case TTY:
-			_vtflush(schedAttachedTTY(), buffer, i);
+			_vtflush(procAttachedTTY(schedCurrentProcess()), buffer, i);
 			break;
 		case TTY_CURSOR:
-			_vtcflush(schedAttachedTTY(), buffer, i);
+			_vtcflush(procAttachedTTY(schedCurrentProcess()), buffer, i);
 			break;
 		case FILE:
 			//TODO: Implementar.
