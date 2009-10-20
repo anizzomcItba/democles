@@ -6,6 +6,7 @@
 #include "include/clipboard.h"
 #include "include/io.h"
 #include "include/sysasm.h"
+#include "include/semaphore.h"
 
 
 /*
@@ -74,6 +75,7 @@ typedef struct{
 	char circular;
 	char init;
 	int referenceCount;
+	int semId;
 } fdT;
 
 
@@ -102,6 +104,7 @@ void fdTableInit(){
 		fdTable[IN_0 + i].type = IN_KEYBOARD;
 		fdTable[IN_0 + i].circular = 1;
 		fdTable[IN_0 + i].referenceCount = 1;
+		fdTable[IN_0 + i].semId = semGetID(0);
 
 		/* Inicialización de las salidas default de TTY */
 		fdTable[TTY_0 + i].head = 0;
@@ -111,6 +114,7 @@ void fdTableInit(){
 		fdTable[TTY_0 + i].init = 1;
 		fdTable[TTY_0 + i].circular = 1;
 		fdTable[TTY_0 + i].referenceCount = 1;
+		fdTable[TTY_0 + i].semId = -1;
 
 
 		/* Inicialización de las salida cursor de TTY */
@@ -121,6 +125,7 @@ void fdTableInit(){
 		fdTable[TTY_CURSOR_0 + i].init = 1;
 		fdTable[TTY_CURSOR_0 + i].circular = 1;
 		fdTable[TTY_CURSOR_0 + i].referenceCount = 1;
+		fdTable[TTY_CURSOR_0 + i].semId = -1;
 	}
 
 
@@ -165,7 +170,8 @@ void sysread(int fd, char *buffOut, size_t qty){
 
 	if (fdTable[globalfd].circular){
 		for(i = 0 ; i < qty ; i++){
-			while(isBufferEmpty(globalfd)){ /*_sleep(); */};
+			//while(isBufferEmpty(globalfd)){ /*_sleep(); */};
+			semDec(fdTable[globalfd].semId); /* Decremento el semaforo */
 			buffOut[i] = bufferRead(globalfd);
 		}
 	} else
@@ -193,10 +199,14 @@ void bufferAdd(int fd, char c){
 
 	/* Si el buffer esta lleno, no debo escribir */
 	/* Escribo en la proxima posicion y actualizo el fd */
+	//TODO: Que hago si el buffer está lleno?
 	if(!isBufferFull(fd)){
 		fdTable[fd].buffer[t++] = c;
 		fdTable[fd].tail = t%fdTable[fd].bsize;
 	}
+
+	if(fdTable[fd].semId != -1)
+		semInc(fdTable[fd].semId);
 	return;
 }
 

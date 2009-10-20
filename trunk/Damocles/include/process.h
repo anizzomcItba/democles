@@ -10,7 +10,7 @@
 #define MAX_PROCESS 71
 
 
-typedef void(*process_t)(int, void*);
+typedef void(*process_t)(int, char**);
 
 /* Crea un proceso */
 int procCreate(char *name, process_t p, void *stack, void *heap,

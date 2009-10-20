@@ -14,7 +14,7 @@
 #define MAX_OPENFILES 10
 #define INIT_PROCESS 0
 #define MAX_PROCESS_ARGS 20
-#define IDLE_PROCCES -1	//TODO: Cambiar al pid del proceso iddle
+#define IDLE_PROCCES 1	//TODO: Cambiar al pid del proceso iddle
 
 static int currentSlot;
 
@@ -112,10 +112,9 @@ dword schedSchedule(){
 		}
 
 		if(slot == startingSlot){
-			/* Di toda la vuelta y no hay ningun proceso listo para correr...
-			 * retonro el stack del proceso iddle.
-			 */
-			//TODO: return procGetStack(IDLE_PROCESS);
+			/* No hay nada que hacer, retorno al proceso idle */
+			currentSlot = IDLE_PROCCES;
+			return procGetStack(sched[currentSlot].pid);
 		}
 
 	}

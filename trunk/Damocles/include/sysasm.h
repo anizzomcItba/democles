@@ -14,7 +14,7 @@ void		_sti(void);	 /* Habilita interrupciones  */
 void	_out(dword port, dword value);
 dword	_in(dword port);
 
-void 	_sleep();
+void 	halt();
 void	yield();
 
 void		int_08_handler();      /* Timer tick */

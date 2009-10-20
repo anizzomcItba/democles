@@ -14,7 +14,7 @@
 #define MAX_OPENFILES 10
 #define INIT_PROCESS 0
 #define MAX_PROCESS_ARGS 20
-#define IDLE_PROCCES -1	//TODO: Cambiar al pid del proceso iddle
+#define IDLE_PROCCES 1	//TODO: Cambiar al pid del proceso iddle
 
 typedef struct {
 	int pid;
@@ -47,19 +47,22 @@ typedef struct {
 
 static process_descriptor_t proc[MAX_PROCESS];
 
+static char idleStack[4096]; //XXX que eso lo de el MMU
 
-
-static byte* push(byte *ptr, byte* data, dword size);
+static byte *push(byte *ptr, byte* data, dword size);
+static byte *buildStack(byte *stack, process_t p, int argc, char **argv);
 static int getFreeSlot();
+
+
+void idle(int argc, char **argv);
 
 
 /* Crea un proceso */
 int procCreate(char *name, process_t p, void *stack, void *heap,
 		int fds[],int files, int argc, char **argv, int tty, int orphan, int priority){
-	context_t context;
-	int i = 0, j= 0;
+
 	int slot = getFreeSlot();
-	char *pArgs[MAX_PROCESS_ARGS];
+//
 
 	/* Obtengo un pid para el cual pid%MAX_PROCESS de el slot obtenido */
 	proc[slot].pid  = proc[slot].pid + MAX_PROCESS;
@@ -73,32 +76,9 @@ int procCreate(char *name, process_t p, void *stack, void *heap,
 	proc[slot].usedstackPages = 1;
 	proc[slot].attachedTTY = tty;
 	memcpy(proc[slot].fds, fds, files*sizeof(int));
-	proc[slot].ESP = (byte*) proc[slot].stackPages[0] + MEM_PAGE_SIZE;
 
 
-	/* Creado del estado inicial de la pila */
-
-	j = argc;
-	pArgs[j] = NULL;
-
-	for(i = argc - 1 ; i >= 0 ; i--){
-		proc[slot].ESP = push(proc[slot].ESP, (byte*) argv[i], strlen(argv[i])+1);
-		pArgs[--j]= (char*) proc[slot].ESP;
-	}
-
-
-	/* Creado el array de punteros a argumentos */
-	proc[slot].ESP = push(proc[slot].ESP, (byte*) pArgs, argc*sizeof(dword));
-
-
-	context.EFLAGS = 0x1 << 9; /* I flag on */
-	context.EIP = (dword) p;
-	context.CS = 0x08;
-	context.retAddr = (dword) &procEnd;
-	context.argc = argc;
-	context.pArgv = (dword) proc[slot].ESP;
-	proc[slot].ESP = push(proc[slot].ESP, (byte*)&context, sizeof(context_t));
-
+	proc[slot].ESP = (byte*) buildStack(stack, p, argc, argv);
 
 	/* Agregarlo al scheduler para que lo empiece a correr */
 	schedAdd(proc[slot].pid, name, priority);
@@ -109,7 +89,36 @@ int procCreate(char *name, process_t p, void *stack, void *heap,
 
 
 
+static byte *buildStack(byte *stack, process_t p, int argc, char **argv){
+	int i, j;
+	context_t context;
+	char *pArgs[MAX_PROCESS_ARGS];
 
+	stack = stack + MEM_PAGE_SIZE;
+
+
+	j = argc;
+	pArgs[j] = NULL;
+
+	for(i = argc - 1 ; i >= 0 ; i--){
+		stack = push(stack, (byte*) argv[i], strlen(argv[i])+1);
+		pArgs[--j]= (char*) stack;
+	}
+
+	stack = push(stack, (byte*) pArgs, argc*sizeof(dword));
+
+
+	context.EFLAGS = 0x1 << 9; /* I flag on */
+	context.EIP = (dword) p;
+	context.CS = 0x08;
+	context.retAddr = (dword) &procEnd;
+	context.argc = argc;
+	context.pArgv = (dword) stack;
+	stack = push(stack, (byte*)&context, sizeof(context_t));
+
+	return stack;
+
+}
 
 int procKill(int pid){
 	return 1;
@@ -158,8 +167,20 @@ void procSetup(){
 	proc[INIT_PROCESS].fds[CURSOR] = TTY_CURSOR_0;
 
 
+	strcpy(proc[IDLE_PROCCES].name, "idle");
+	proc[IDLE_PROCCES].pid = IDLE_PROCCES;
+	proc[IDLE_PROCCES].ppid = IDLE_PROCCES;
+	proc[IDLE_PROCCES].status = READY;
+	proc[IDLE_PROCCES].attachedTTY = 0;
+	proc[IDLE_PROCCES].fds[STDIN] = IN_0;
+	proc[IDLE_PROCCES].fds[STDOUT] = TTY_0;
+	proc[IDLE_PROCCES].fds[CURSOR] = TTY_CURSOR_0;
+	proc[IDLE_PROCCES].ESP =(byte*) buildStack((byte*)idleStack, (process_t)idle, 0, NULL);
+
+
+
 	schedSetUpInit(INIT_PROCESS, "init", 0);
-	//schedSetUpIdle(IDLE_PROCCES, "iddle", 0);
+	schedSetUpIdle(IDLE_PROCCES, "iddle", 0);
 
 	return;
 }
@@ -198,5 +219,9 @@ static int getFreeSlot(){
 	return -1;
 }
 
-
+void idle(int argc, char **argv){
+	while(1){
+		halt();
+	}
+}
 
