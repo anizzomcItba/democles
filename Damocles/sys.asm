@@ -11,7 +11,7 @@ GLOBAL _sti
 GLOBAL _lidt
 GLOBAL _in
 GLOBAL _out
-GLOBAL _sleep
+GLOBAL halt
 GLOBAL _read_cr0
 GLOBAL _read_cr3
 GLOBAL _write_cr3
@@ -211,7 +211,7 @@ int_74_handler:
 		iret
 
 
-_sleep:
+halt:
 	hlt
 	ret
 

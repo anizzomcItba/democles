@@ -18,6 +18,7 @@
 #include "include/io.h"
 #include "include/tty.h"
 #include "include/process.h"
+#include "include/semaphore.h"
 
 #include "drivers/video/crtc6845.h" //TODO: Esta de debugeo esto
 void testText(void);
@@ -62,6 +63,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 
+	semSetup();
 	fdTableInit();
 	schedSetUp();
 	procSetup();
@@ -143,7 +145,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 	char *args[] = { "Argumento1", "Argumento2", "Argumento3"};
-	procCreate("foo", foo, stack, NULL, fds, 3, 3, args, 0, 0, 0);
+	procCreate("foo",(process_t) foo, stack, NULL, fds, 3, 3, args, 0, 0, 0);
 
 	_sti();
 
@@ -151,7 +153,8 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	//setCursor(0, 0);
 
 	while(1){
-		sleep(100000);
+		//shell();
+		sleep(1);
 	}
 
 	kprint("System Halted");
