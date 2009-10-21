@@ -34,29 +34,37 @@ void startPaging(void)
 	int i, j;
 
 	startAllocator();
-	for ( i = 0; i < 1024; i++)
+	//Como mapeo 4MB para Kernel, 8MB para Stack, entonces mapeo
+	//12MB que son 3 entradas del directorio
+
+	for ( i = 0; i < 3; i++)
 	{
-		for(j = 0; j < 1024; j++)
-		{
-			//Seteo la entrada, todo lo que sea de los primeros 8 megas no los habilito
-			if(i <= 1)
+
+			for(j = 0; j < 1024; j++)
 			{
-				page_tables[j] = address | 3;
-				pop();
+				//Seteo la entrada, todo lo que sea de los primeros 4 megas no los meto
+				//en el stack de paginas disponibles, porque estas son del kernel.
+
+				if(i == 0 )
+				{
+					pop();
+					page_tables[j] = address | 3;
+				}
+				else
+					page_tables[j] = address | 2;
+
+				address += MEM_PAGE_SIZE;
+
 			}
-			else
-				page_tables[j] = address | 2;
-
-			address += MEM_PAGE_SIZE;
-
-		}
-		page_directory[i] =  (dir_entry)page_tables;
-		page_tables += MEM_PAGE_SIZE;
-		if(i == 0 || i == 1)
+			page_directory[i] =  (dir_entry)page_tables;
+			page_tables = (unsigned int*)((int)page_tables + 4096);
 			page_directory[i] = page_directory[i] | 3;
-		else
-			page_directory[i] = page_directory[i] | 2;
+
+
 	}
+
+	for(i = 3; i < 1024 ; i++)
+		page_directory[i] = 0 | 2;
 
 
 	_write_cr3(page_directory); // put that page directory address into CR3
@@ -89,26 +97,32 @@ getPage(void)
 
 	getDirectoryPageTableIndex(resp,&dir_index,&page_table_index);
 
-	if(page_directory[dir_index] | 2 )
-		page_directory[dir_index] |= 3;
 
 	page_entry * page_table;
-	page_table = (page_entry *)page_directory[dir_index];
+	page_table = (page_entry *)(page_directory[dir_index] & 0xFFFFF000);
 
-	if((page_table[page_table_index] & 3 ) == 3){
-		//kprintf("Esa entrada de la tabla de pagina ya estaba presente!!!!");
+	//kprintf("%x -> %x\n",page_directory[dir_index], page_table[page_table_index]);
+
+	if((page_directory[dir_index] % 2 )  == 0 )
+	{
+
+		return 0;
+
 	}
+
+
+	if((page_table[page_table_index]& 0x0000000F) == 2)
+		page_table[page_table_index ] |= 3;
 	else
-		page_table[page_table_index] |= 3;
+	//	Ya estaba presente!
+		return 0;
 
 
-//	kprintf("dir index = %d, page table = %d\n",dir_index,page_table_index);
-//	kprintf("La entrada en el dir %x\n",page_directory[dir_index]);
-//	kprintf("La entrada en la tabla de pag %x\n",page_table[page_table_index]);
+	//kprintf("%x -> %x\n",page_directory[dir_index], page_table[page_table_index]);
+
+
 	return resp;
 
-
-	/*Todo, setear la pagina en el directorio correspondiendte*/
 }
 
 void
@@ -120,16 +134,19 @@ freePage(unsigned int id)
 	getDirectoryPageTableIndex(id,&dir_index, &page_table_index);
 
 	page_entry * page_table;
-	page_table = (page_entry *)page_directory[dir_index];
+	page_table = (page_entry *)(page_directory[dir_index] & 0xFFFFF000);
 
-	if((page_table[page_table_index] & 3 ) == 2)
-		kprintf("Me dieron una pagina que no estaba presente, no la puedo liberar!");
+	//kprintf("%x -> %x\n",page_directory[dir_index], page_table[page_table_index]);
+
+
+	if((page_table[page_table_index]& 0x0000000F) == 2)
+		//kprintf("Me dieron una pagina que no estaba presente, no la puedo liberar!\n");
+		return;
 	else
 		page_table[page_table_index] &= 0xFFFFFFF2;
 
-	kprintf("dir index = %d, page table = %d\n",dir_index,page_table_index);
-	kprintf("La entrada en el dir %x\n",page_directory[dir_index]);
-	kprintf("La entrada en la tabla de pag %x\n",page_table[page_table_index]);
+	//kprintf("%x -> %x\n",page_directory[dir_index], page_table[page_table_index]);
+
 	return push(id);
 }
 
