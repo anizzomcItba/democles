@@ -15,12 +15,16 @@ typedef struct{
 }stack_elem;
 
 // 2^20 posibles ids es igual  a  1048576
+// Dedico 8MB a partir de los primeros 4MB para Stacks.
+
+
 
 stack_elem stack[STACK_SIZE];
 int top = STACK_SIZE;
 
 void push(unsigned int id)
 {
+
 	unsigned int first;
 	unsigned int second;
 	unsigned int third;

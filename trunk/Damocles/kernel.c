@@ -132,7 +132,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	fds[STDOUT] = TTY_0;
 	fds[CURSOR] = TTY_CURSOR_0;
 
-	procCreate("Shell- 0", (process_t)shell, shellstack0, NULL, fds, 3, 0, NULL, 0, 0, 0);
+	procCreate("Shell- 0", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
 
 
 	fds[STDIN] = IN_1;
@@ -141,11 +141,11 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 
-	procCreate("Shell- 1", (process_t)shell, shellstack1, NULL, fds, 3, 0, NULL, 1, 0, 0);
+	procCreate("Shell- 1", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 1, 0, 0);
 
 
 	char *args[] = { "Argumento1", "Argumento2", "Argumento3"};
-	procCreate("foo",(process_t) foo, stack, NULL, fds, 3, 3, args, 0, 0, 0);
+	procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 3, args, 0, 0, 0);
 
 	_sti();
 

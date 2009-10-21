@@ -880,6 +880,10 @@ getPageCommand(void)
 {
 	unsigned int resp = getPage();
 	kprintf("Page id given : %u(0x%x)\n",resp,resp);
+	int * page;
+	page = (int * )resp;
+	*page = resp;
+	kprintf("Escribi un numero en la pagina!\n");
 	return;
 }
 
@@ -903,6 +907,9 @@ retPageCommand(void)
 							kprintf("Invalid page id!\n");
 							return;
 						}
+						int * page;
+						page = (int *)id;
+						kprintf("En esta pagina estaba escrito un: %d\n", *page);
 						 freePage(id);
 						kprintf("Page returned\n");
 						return;

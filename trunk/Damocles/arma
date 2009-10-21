@@ -1,28 +1,28 @@
 nasm -f aout -g loader.asm -o loader.o
 nasm -f aout -g sys.asm -o sysasm.o
-gcc -Wall -g  -c -fno-builtin-printf -fno-builtin-putchar -nostartfiles -nostdlib kernel.c -o kernel.o
-gcc -Wall -g  -c sys.c  -o sysc.o
-gcc -Wall -g  -c -fno-stack-protector -fno-builtin-printf drivers/video/crtc6845.c -o crtc6845.o
-gcc -Wall -g -c  -fno-builtin-printf -fno-builtin-putchar -nostartfiles -nostdlib lib/string.c -o string.o
-gcc -Wall -g -c -fno-builtin-printf -fno-builtin-abs lib/video.c -o video.o
-gcc -Wall -g -c drivers/keyboard/keyboard.c -o keyboard.o
-gcc -Wall -g -c drivers/timer/timer.c -o timer.o
-gcc -Wall -g -c -fno-builtin-printf  drivers/mouse/mouse.c -o mouse.o
-gcc -Wall -g  -fno-stack-protector -fno-builtin-putchar -fno-builtin-printf -c lib/stdio.c -o stdio.o
-gcc -Wall -g -c -fno-builtin-abs lib/math.c -o math.o
-gcc -Wall -g -c -fno-stack-protector shell/shell.c -o shell.o
-gcc -Wall -g -c services/clipboard.c -o clipboard.o
-gcc -Wall -g -m32 -c services/fortune.c -o fortune.o
-gcc -Wall -g -c mmu.c -o mmu.o
-gcc -Wall -g -c lib/stack.c -o stack.o
-gcc -Wall -g -c IO.c -o IO.o -fno-stack-protector
-gcc -Wall -g -c sched.c -o sched.o
-gcc -Wall -g -c sysvideo.c -o sysvideo.o 
-gcc -Wall -g -c syscall.c -o syscall.o
+gcc -Wall -g  -c -nostartfiles -nostdlib kernel.c -o kernel.o -fno-builtin
+gcc -Wall -g  -c sys.c  -o sysc.o -fno-builtin
+gcc -Wall -g  -c -fno-stack-protector -fno-builtin-printf drivers/video/crtc6845.c -o crtc6845.o -fno-builtin
+gcc -Wall -g -c  -fno-builtin-printf -fno-builtin-putchar -nostartfiles -nostdlib lib/string.c -o string.o -fno-builtin
+gcc -Wall -g -c -fno-builtin-printf -fno-builtin-abs lib/video.c -o video.o -fno-builtin
+gcc -Wall -g -c drivers/keyboard/keyboard.c -o keyboard.o -fno-builtin
+gcc -Wall -g -c drivers/timer/timer.c -o timer.o -fno-builtin 
+gcc -Wall -g -c -fno-builtin-printf  drivers/mouse/mouse.c -o mouse.o -fno-builtin
+gcc -Wall -g  -fno-stack-protector -fno-builtin-putchar -fno-builtin-printf -c lib/stdio.c -o stdio.o -fno-builtin
+gcc -Wall -g -c -fno-builtin-abs lib/math.c -o math.o -fno-builtin
+gcc -Wall -g -c -fno-stack-protector shell/shell.c -o shell.o -fno-builtin
+gcc -Wall -g -c services/clipboard.c -o clipboard.o -fno-builtin
+gcc -Wall -g -m32 -c services/fortune.c -o fortune.o -fno-builtin
+gcc -Wall -g -c mmu.c -o mmu.o -fno-builtin
+gcc -Wall -g -c lib/stack.c -o stack.o -fno-builtin
+gcc -Wall -g -c IO.c -o IO.o -fno-stack-protector -fno-builtin
+gcc -Wall -g -c sched.c -o sched.o -fno-builtin
+gcc -Wall -g -c sysvideo.c -o sysvideo.o -fno-builtin
+gcc -Wall -g -c syscall.c -o syscall.o -fno-builtin
 gcc -Wall -g -c ttys.c -o ttys.o -fno-builtin
-gcc -Wall -g -c process.o -c process.o -fno-builtin
-gcc -Wall -g -c semaphore.c -c semaphore.o -fno-builtin
-ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o mouse.o stdio.o math.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o  IO.o sched.o sysvideo.o syscall.o ttys.o 
+gcc -Wall -g -c process.c -o process.o -fno-builtin
+gcc -Wall -g -c semaphore.c -o semaphore.o -fno-builtin
+ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o
 rm *.o
 
 
