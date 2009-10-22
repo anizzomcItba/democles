@@ -37,7 +37,7 @@ int schedSetPriority(int pid, int priority);
 
 int schedGetPriority(int pid);
 
-void schedAdd(int pid, char *name, int priority);
+int schedAdd(int pid, char *name, int priority);
 
 int schedRemove(int pid);
 
@@ -45,7 +45,7 @@ int schedBlock(int pid);
 
 int schedContinue(int pid);
 
-void schedChangeStatus(int pid, status_t status);
+int schedChangeStatus(int pid, status_t status);
 
 void schedSetUpInit(int pid, char *name, int priroty);
 

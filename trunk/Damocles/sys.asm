@@ -17,6 +17,8 @@ GLOBAL _read_cr3
 GLOBAL _write_cr3
 GLOBAL _write_cr0
 GLOBAL syscall
+GLOBAL gFlags
+GLOBAL sFlags
 
 EXTERN keyboardRoutine
 EXTERN timerHandler
@@ -85,11 +87,9 @@ int_80_handler:
 	push ebp
 	mov ebp, esp	;StackFrame
 
-	sti				;TODO cuando leer sea bloqueante
-					; a nivel proceso hay que sacarlo
+	sti		;Los procesos pueden hacer syscalls simultaneas
 
-
-	; Cambio de contexto?
+	; Stack especial?
 
 	push edi
 	push esi
@@ -105,7 +105,7 @@ int_80_handler:
 	; En eax debe dejar la
 	; respuesta
 
-	; Devolver el contexto anterior
+	; Retornal al viejo stack
 
 	mov esp, ebp
 	pop ebp
@@ -159,7 +159,9 @@ int_08_handler:
 	push esp
 	call procSaveStack
 
-	call schedTicks
+	;TODO: Obtener un stack especial
+
+	call schedTicks	;Descuenta un tick a todos los procesos esperando
 
 	call schedSchedule
 	mov esp, eax
@@ -172,12 +174,14 @@ int_08_handler:
 
 	iret
 
-;yield
+;yield -> Identica al anterior 08, pero no descuenta ticks
 int_7F_handler:
 	pushad
 
 	push esp
 	call procSaveStack
+
+	;TODO: Obtener un stack especial
 
 	call schedSchedule
 	mov esp, eax
@@ -262,3 +266,28 @@ _write_cr3:
 yield:
 	int 7Fh
 	ret
+
+gFlags:
+	push ebp
+	mov ebp, esp
+
+	pushfd
+	pop eax
+
+	mov esp, ebp
+	pop ebp
+	ret
+
+sFlags:
+	push ebp
+	mov ebp, esp
+
+	mov eax, [ebp + 8] ; Arg1
+	push eax
+	popfd
+
+	mov esp, ebp
+	pop ebp
+	ret
+
+

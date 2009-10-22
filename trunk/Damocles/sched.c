@@ -112,6 +112,8 @@ dword schedSchedule(){
 		}
 
 		if(slot == startingSlot){
+			//TODO:Disable old process memory
+			//TODO:Enable new process memory
 			/* No hay nada que hacer, retorno al proceso idle */
 			currentSlot = IDLE_PROCCES;
 			return procGetStack(sched[currentSlot].pid);
@@ -120,8 +122,12 @@ dword schedSchedule(){
 	}
 }
 
-void schedAdd(int pid,char *name, int priority){
+int schedAdd(int pid,char *name, int priority){
 	int slot = getFreeSlot();
+
+	if(slot == -1)
+		/* No encontré un slot libre retorno 0; */
+		return 0;
 
 	sched[slot].pid = pid;
 	strcpy(sched[slot].name, name);
@@ -132,26 +138,33 @@ void schedAdd(int pid,char *name, int priority){
 	sched[currentSlot].nextSlot = slot;
 
 	sched[slot].status = BLOCKED;
+	return 1;
 }
 
-void schedChangeStatus(int pid, status_t status){
+
+/* Cambia el estado de un proceso,  si lo encuentra. Si no lo encuentra
+ * retorna 0
+ */
+int schedChangeStatus(int pid, status_t status){
 	int slot = currentSlot;
 
 	while(sched[slot].pid != pid){
 		slot = sched[slot].nextSlot;
 		if(slot == currentSlot){
 			/* Recorri la lista y no encontre el proceso */
-			return;
+			return 0;
 		}
 	}
 	sched[slot].status = status;
-	return;
+	return 1;
 }
 
 
 int schedCurrentProcess(){
 	return sched[currentSlot].pid;
 }
+
+
 
 void schedSleep(int milliseconds){
 	if(milliseconds > 0) {

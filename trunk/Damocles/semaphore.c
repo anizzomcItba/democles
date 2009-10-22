@@ -3,14 +3,16 @@
 #include "include/semaphore.h"
 #include "include/sched.h"
 #include "include/sysasm.h"
+#include "include/syslib.h"
 
 #define MAX_PIDS 10
 #define MAX_SEMAPHORES 30
 
 typedef struct {
-	int pids[MAX_PIDS]; /* array de pids a levantar cuando el semaforo esté > 0 */
-	int index; /* puntero que usa el adt para guardar que pids levantar */
 	int value;
+	int pids[MAX_PIDS]; /* array de pids a levantar cuando el semaforo esté > 0 */
+	int first;
+	int last;
 	int inUse;
 } semaphore_t;
 
@@ -33,6 +35,11 @@ void semSetup(){
 
 int semGetID(int value){
 	int i;
+	int f;
+
+	/* Desabilitar interrupciones */
+	f = disableInts();
+
 	for (i = 0 ; i < MAX_SEMAPHORES ; i++){
 		if(!sems[i].inUse){
 			sems[i].value = value;
@@ -41,21 +48,35 @@ int semGetID(int value){
 			return i;
 		}
 	}
+
+	/* Restauro las interrupciones */
+	restoreInts(f);
 	return -1;
 }
 
 int semDec(int id){
 
+	int f;
 	int pid = schedCurrentProcess();
 	if(isFull(id)){
 		return 0;
 	}
 
-	if(--sems[id].value < 0){
+	/* Desabilitar interrupciones */
+	f = disableInts();
+
+	if(sems[id].value <= 0){
 		addPid(id, pid);
+		/* Esto nunca va a fallar porque es el proceso que está
+		 * corriento es este momento el que se bloquea
+		 */
 		schedChangeStatus(pid, BLOCKED);
 		yield();
-	}
+	}else
+		sems[id].value--;
+
+	/* Restauro las interrupciones */
+	restoreInts(f);
 
 	return 1;
 }
@@ -63,12 +84,31 @@ int semDec(int id){
 
 void semInc(int id){
 
-	/* Despierto a todos los procesos dormidos en el semaforo */
-	if(++sems[id].value >= 0){
-		while(!isEmpty(id)){
-			schedChangeStatus(getPid(id), READY);
+	int iter = 1;
+	int f;
+
+	/* Desabilito interrupciones */
+	f = disableInts();
+
+	while(iter){
+		if(isEmpty(id)){
+			/* Si no hay ningun proceso a despertar cuento el wake y salgo
+			 * del ciclo */
+			sems[id].value++;
+			iter = 0;
+		} else {
+			if(!schedChangeStatus(getPid(id), READY))
+				/* El proceso a despertar está muerto, vuelvo a probar */
+				continue;
+			else
+				/* lo logre despertar, salgo del ciclo */
+				iter = 0;
 		}
 	}
+
+	/* Restauro las interrupciones */
+	restoreInts(f);
+
 }
 
 void semRetID(int id){
@@ -77,21 +117,29 @@ void semRetID(int id){
 
 
 static void setup(int id){
-	sems[id].index = 0;
+	sems[id].first = sems[id].last = 0;
 }
 
 static void addPid(int id, int pid){
-	sems[id].pids[sems[id].index++] = pid;
+	int last = sems[id].last;
+
+	sems[id].pids[last] = pid;
+	sems[id].last = (last + 1)%MAX_PIDS;
 }
 
 static int isEmpty(int id){
-	return sems[id].index == 0;
+	return sems[id].first == sems[id].last;
 }
 
 static int isFull(int id){
-	return sems[id].index == MAX_PIDS;
+	return (sems[id].last + 1)%MAX_PIDS == sems[id].first%MAX_PIDS;
 }
 
 static int getPid(int id){
-	return sems[id].pids[--sems[id].index];
+	int first = sems[id].first;
+	int ret;
+
+	ret = sems[id].pids[first];
+	sems[id].first = (first + 1)%MAX_PIDS;
+	return ret;
 }

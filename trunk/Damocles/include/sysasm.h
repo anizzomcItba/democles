@@ -17,6 +17,12 @@ dword	_in(dword port);
 void 	halt();
 void	yield();
 
+
+
+dword gFlags(); /* Retorna la palabra de flags */
+void sFlags(dword flags); /* Setea la palabra de flags */
+
+
 void		int_08_handler();      /* Timer tick */
 void		int_7F_handler();	/* yield syscall */
 void		int_80_handler();

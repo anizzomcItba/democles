@@ -162,6 +162,7 @@ void sysread(int fd, char *buffOut, size_t qty){
 
 	int globalfd = procGetFD(fd);
 
+	//XXX Esto sigue aca?
 	if(fd > MAX_FDS || !fdTable[globalfd].init){
 		//This should kill the caller
 		return;
