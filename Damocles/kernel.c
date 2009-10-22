@@ -19,8 +19,8 @@
 #include "include/tty.h"
 #include "include/process.h"
 #include "include/semaphore.h"
+#include "drivers/video/crtc6845.h"
 
-#include "drivers/video/crtc6845.h" //TODO: Esta de debugeo esto
 void testText(void);
 
 
@@ -49,9 +49,6 @@ void foo(int argc, char *argv[]){
 }
 
 //static char stack1[4096]; //TODO: Esto lo debería retornar el mmu
-static char shellstack0[4096];
-static char shellstack1[4096];
-static char stack[4096];
 
 
 /**********************************************
@@ -62,6 +59,11 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 {
 
 
+
+	/* Inicialización de todas las terminales */
+	_vinit();
+
+	ttySetActive(WORK_PAGE);
 
 	semSetup();
 	fdTableInit();
@@ -92,7 +94,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	_lidt(&idtr);
 
 
-
 	startPaging();
 
 
@@ -120,13 +121,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 
-
-	/* Inicialización de todas las terminales */
-	_vinit();
-
-	ttySetActive(WORK_PAGE);
-
-
 	int fds[3];
 	fds[STDIN] = IN_0;
 	fds[STDOUT] = TTY_0;
@@ -148,7 +142,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 3, args, 0, 0, 0);
 
 	_sti();
-
 
 	//setCursor(0, 0);
 

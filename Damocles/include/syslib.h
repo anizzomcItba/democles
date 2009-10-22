@@ -1,0 +1,20 @@
+/* syslib.h */
+
+/* Esta librería contiene funciones que interactuan con el sistema */
+
+#ifndef SYSLIB_H_
+#define SYSLIB_H_
+
+/* Desabilita las interrupciones si estaban habilitadas y guarda y retorna el
+ * estado de las mismas.
+ */
+int disableInts();
+
+
+/* Restarua el estado de las interrupciones deacuerdo a como estaban según
+ * el parámetro recuperado por disableInts();
+ */
+
+void restoreInts(int iflag);
+
+#endif /* SYSLIB_H_ */
