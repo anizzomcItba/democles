@@ -32,6 +32,8 @@ DESCR_INT idt[0x81];			/* IDT de 81h entradas*/
 IDTR idtr;				/* IDTR */
 
 
+void top(int argc, char **argv);
+
 void foo(int argc, char *argv[]){
 	char *video =(char*) 0xB8000;
 	int i = 0, j = 0;
@@ -43,7 +45,7 @@ void foo(int argc, char *argv[]){
 	while(1){
 		for(i = 0 ; i < 160 ; i++){
 			video[i] = j++;
-			sleep(1000);
+			sleep(100);
 		}
 	}
 }
@@ -58,12 +60,6 @@ KERNEL
 int _main(multiboot_info_t* mbd, unsigned int magic)
 {
 
-
-
-	/* Inicialización de todas las terminales */
-	_vinit();
-
-	ttySetActive(WORK_PAGE);
 
 	semSetup();
 	fdTableInit();
@@ -119,6 +115,13 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 //	saverInit();
 
+	/* Inicialización de todas las terminales */
+	_vinit();
+
+	ttySetActive(WORK_PAGE);
+
+
+
 
 
 	int fds[3];
@@ -126,7 +129,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	fds[STDOUT] = TTY_0;
 	fds[CURSOR] = TTY_CURSOR_0;
 
-	procCreate("Shell- 0", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
+	procCreate("Shell-0", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
 
 
 	fds[STDIN] = IN_1;
@@ -135,11 +138,21 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 
-	procCreate("Shell- 1", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 1, 0, 0);
+	procCreate("Shell-1", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 1, 0, 0);
+
+	fds[STDIN] = IN_2;
+	fds[STDOUT] = TTY_2;
+	fds[CURSOR] = TTY_CURSOR_2;
 
 
+	procCreate("Top", (process_t)top, (void *)getPage(), NULL, fds, 3, 0, NULL, 2, 0, 0);
+
+
+	int a;
 	char *args[] = { "Argumento1", "Argumento2", "Argumento3"};
-	procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 3, args, 0, 0, 0);
+	a = procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 3, args, 0, 0, 0);
+	printf("Foo : %d\n", a);
+
 
 	_sti();
 

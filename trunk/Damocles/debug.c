@@ -1,9 +1,13 @@
 
+#include "include/stdio.h"
+#include "include/sched.h"
 
-void videoPrint(char *fmt){
-	char *video = (char *) 0xB8000;
-	int i = 1;
-	while(*fmt){
-		video[i+=2] = *fmt;
-	}
+
+void debug(){
+	printf("Sacando del scheduler foo\n");
+	schedRemove(4);
+}
+
+void breakpoint(){
+
 }
