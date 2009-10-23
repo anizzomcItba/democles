@@ -10,7 +10,7 @@ int top(int argc, char **argv){
 
 	int currentProcess;
 	schedProcData_t data[10];
-	int run, i;
+	int running, i;
 
 //	if(argc != 2){
 //		printf("Cantidad de argumentos inválida!\n");
@@ -21,15 +21,17 @@ int top(int argc, char **argv){
 	while(1){
 		_cli();
 		currentProcess = schedCantProcess();
-		run = schedGetInfo(data, 10);
+		running = schedGetInfo(data, 10);
 		_sti();
 
 		clearScreen();
-		printf("Cantidad de procesos: \n", currentProcess);
-		printf("PID\t\tNombre\t\tTicks\t\tPriority\t\tStatus\n");
-		for (i = 0 ; i < run ; i++){
-			printf("%d\t\t%s\t\t%d\t\t%d\t\t%s\n",data[i].pid, data[i].name, data[i].ticks,
+		setCursor(0, 0);
+		kprintf("Cantidad de procesos: \n", currentProcess);
+		kprintf("PID\t\tNombre\t\tTicks\t\tPriority\t\tStatus\n");
+		for (i = 0 ; i < running ; i++){
+			kprintf("%d\t\t%s\t\t%d\t\t%d\t\t%s\n",data[i].pid, data[i].name, data[i].ticks,
 					data[i].priority, statusString(data[i].status));
+			//kprintf("%d\n", data[i].pid);
 		}
 		sleep(2000);
 	}
