@@ -19,8 +19,8 @@ typedef struct{
 
 
 
-stack_elem stack[STACK_SIZE];
-int top = STACK_SIZE;
+static stack_elem stack[STACK_SIZE];
+static int top = STACK_SIZE;
 
 void push(unsigned int id)
 {

@@ -5,18 +5,17 @@
 #include "include/mmu.h"
 #include "include/io.h"
 #include "include/sysasm.h"
+#include "include/syslib.h"
 
-#define KEYBOARD 8
-
-#define NAME_LENGTH 30
 #define MAX_HEAPPAGES 10
 #define MAX_STACKPAGES 1
 #define MAX_OPENFILES 10
 #define INIT_PROCESS 0
 #define MAX_PROCESS_ARGS 20
-#define IDLE_PROCCES 1	//TODO: Cambiar al pid del proceso iddle
+#define IDLE_PROCCES 1
 
 static int currentSlot;
+static int processCant = 0;
 
 
 typedef struct {
@@ -25,6 +24,7 @@ typedef struct {
 	int priority;
 	int waitingTicks;
 	status_t status;
+	int ticks;
 	int nextSlot;
 } procces_scheduler_t;
 
@@ -32,7 +32,7 @@ typedef struct {
 static procces_scheduler_t sched[MAX_PROCESS];
 
 static int getFreeSlot();
-
+static int findSlot(int pid);
 
 
 void schedSetUp(){
@@ -50,6 +50,8 @@ void schedSetUpInit(int pid, char *name, int priroty){
 	sched[INIT_PROCESS].status = RUNNING;
 	sched[INIT_PROCESS].priority = priroty;
 	sched[INIT_PROCESS].nextSlot = INIT_PROCESS;
+	sched[INIT_PROCESS].ticks = 0;
+	processCant++;
 }
 
 void schedSetUpIdle(int pid, char *name, int priority){
@@ -58,6 +60,8 @@ void schedSetUpIdle(int pid, char *name, int priority){
 	sched[IDLE_PROCCES].status = READY;
 	sched[IDLE_PROCCES].priority = priority;
 	sched[IDLE_PROCCES].nextSlot = INIT_PROCESS;
+	sched[IDLE_PROCCES].ticks = 0;
+	processCant++;
 }
 /* Función que decrementa los ticks que se estan esperando para ejecutar
  * nuvamente.
@@ -87,39 +91,34 @@ dword schedSchedule(){
 	//TODO: Esto debería correr sobre un stack temporal, al igual que
 	//Ticks
 
-	int slot, startingSlot;
-	slot = startingSlot = currentSlot;
+	int newSlot, oldSlot;
 
-	/* Si el proceso estaba corriendo, es que está listo para
-	 * volver a correr.
-	 */
+	newSlot = oldSlot = currentSlot;
+
+	/* Si el proceso estaba corriendo, es porque está listo para correr */
 	if(sched[currentSlot].status == RUNNING)
 		sched[currentSlot].status = READY;
 
 	while(1){
-		slot = sched[slot].nextSlot;
-
-		if(sched[slot].status == READY){
-			/* Encontre un proceso listo para correr, checkeo que no sea
-			 * el mismo, si no lo es, desabilito/habilito las páginas de
-			 * memoria */
-			if (slot != currentSlot){
-				//TODO: Disable old process memory
-				currentSlot = slot;
-				//TODO: Enable new process memory
-			}
-			return  procGetStack(sched[slot].pid);
+		newSlot = sched[newSlot].nextSlot;
+		if(sched[newSlot].status == READY){
+			currentSlot = newSlot;
+			break;
 		}
-
-		if(slot == startingSlot){
-			//TODO:Disable old process memory
-			//TODO:Enable new process memory
-			/* No hay nada que hacer, retorno al proceso idle */
+		if(newSlot == oldSlot){
 			currentSlot = IDLE_PROCCES;
-			return procGetStack(sched[currentSlot].pid);
+			break;
 		}
-
 	}
+
+	if(oldSlot != currentSlot){
+		//TODO: DisablePages(oldSlot.pid);
+		//TODO: EnablePages(newSlot.pid);
+	}
+
+	sched[currentSlot].ticks++;
+	sched[currentSlot].status = RUNNING;
+	return procGetStack(sched[currentSlot].pid);
 }
 
 int schedAdd(int pid,char *name, int priority){
@@ -138,33 +137,127 @@ int schedAdd(int pid,char *name, int priority){
 	sched[currentSlot].nextSlot = slot;
 
 	sched[slot].status = BLOCKED;
+
+	schedResetStatics();
+	processCant++;
 	return 1;
 }
+
+
+void schedResetStatics(){
+	int slot = currentSlot;
+
+	while(1){
+		sched[slot].ticks = 0;
+		slot = sched[slot].nextSlot;
+		if(slot == currentSlot)
+			break;
+	}
+}
+
+void breakpoint();
+
+int schedGetInfo(schedProcData_t data[], int max){
+	int i;
+	int slot = sched[currentSlot].nextSlot;
+
+	/* Copio, mientras sea menor que max y no haya recorrido todos los
+	 * procesos, al array pasado como argumento.
+	 */
+	for(i = 0 ; i < max && slot != currentSlot ;i++){
+
+		breakpoint();
+
+		strcpy(data[i].name, sched[slot].name);
+		data[i].pid = sched[slot].pid;
+		data[i].priority = sched[slot].priority;
+		data[i].ticks = sched[slot].ticks;
+		data[i].status = sched[slot].status;
+		slot = sched[slot].nextSlot;
+	}
+
+	return i;
+}
+
 
 
 /* Cambia el estado de un proceso,  si lo encuentra. Si no lo encuentra
  * retorna 0
  */
 int schedChangeStatus(int pid, status_t status){
-	int slot = currentSlot;
+	int slot;
 
-	while(sched[slot].pid != pid){
-		slot = sched[slot].nextSlot;
-		if(slot == currentSlot){
-			/* Recorri la lista y no encontre el proceso */
-			return 0;
-		}
+	if((slot = findSlot(pid)) == -1){
+		return 0;
 	}
+
 	sched[slot].status = status;
 	return 1;
 }
 
 
+
+int schedContinue(int pid){
+	return schedChangeStatus(pid, READY);
+}
+
+int schedBlock(int pid){
+	return schedChangeStatus(pid, BLOCKED);
+}
+
 int schedCurrentProcess(){
 	return sched[currentSlot].pid;
 }
 
+int schedRemove(int pid){
 
+	int f = disableInts();
+
+	int slot = currentSlot;
+
+	if(pid == IDLE_PROCCES || pid == INIT_PROCESS)
+		/* No se pueden desalojar estos procesos */
+		return 0;
+
+
+	/* Busco al slot del  proceso anterior al desalojar */
+	while(sched[sched[slot].nextSlot].pid != pid){
+		slot = sched[slot].nextSlot;
+		if(slot == currentSlot){
+			return 0;
+		}
+	}
+
+	sched[sched[slot].nextSlot].status = FREE;
+	sched[slot].nextSlot = sched[sched[slot].nextSlot].nextSlot;
+	processCant--;
+
+	restoreInts(f);
+
+	return 1;
+
+}
+
+
+int schedSetPriority(int pid, int priority){
+	int slot;
+
+	if((slot = findSlot(pid)) == -1){
+		return -1;
+	}
+
+	sched[slot].priority = priority;
+	return sched[slot].priority;
+}
+
+int schedGetPriority(int pid){
+	int slot = findSlot(pid);
+
+	if(slot == -1)
+		return -1;
+
+	return sched[slot].priority;
+}
 
 void schedSleep(int milliseconds){
 	if(milliseconds > 0) {
@@ -174,6 +267,11 @@ void schedSleep(int milliseconds){
 	return;
 }
 
+int schedCantProcess(){
+	return processCant;
+}
+
+
 static int getFreeSlot(){
 	int i;
 	for(i = 0 ; i < MAX_PROCESS ; i++){
@@ -182,4 +280,21 @@ static int getFreeSlot(){
 	}
 
 	return -1;
+}
+
+
+static int findSlot(int pid){
+	int slot = currentSlot;
+
+	while(sched[slot].pid != pid){
+		slot = sched[slot].nextSlot;
+
+		if(slot == currentSlot){
+			/* Recorrí todos los elementos y no encontré el pid
+			 * que buscaba */
+			return -1;
+		}
+	}
+
+	return slot;
 }

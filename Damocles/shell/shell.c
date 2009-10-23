@@ -18,6 +18,10 @@
 #define SHELL_BUFFER_LENGTH 101
 
 
+
+//XXX
+void debug(void);
+
 /*Longitud maxima de un comando*/
 #define MAX_COMM_LENGTH				100
 /*Maxima cantidad distinta de flags que puede tener
@@ -38,7 +42,7 @@
 #define PROMPT "user@damocles:~$ "
 
 /*La cantidad de Comandos en Damocles*/
-#define COMM_QTY			8
+#define COMM_QTY			9
 
 /*Cantidad de flags que tiene screensaver*/
 #define SSAVERFLAGS			3
@@ -54,6 +58,7 @@
 #define FORTUNEFLAGS		1
 #define GETPAGEFLAGS		1
 #define RETPAGEFLAGS		2
+#define DEBUGFLAGS			1
 
 
 
@@ -74,6 +79,7 @@ static int posOtroComando;
 #define	COMMAND_FORTUNE				5
 #define COMMAND_GETPAGE				6
 #define COMMAND_RETPAGE				7
+#define COMMAND_DEBUG				8
 
 
 static void backSpace(void);
@@ -184,7 +190,7 @@ static void populateCommands(Command * c)
 
 	/*Arreglo con los codigos en sus respectivos lugares, esto por conveniencia para poder
 	 * iterar despues al cargar myCommands*/
-	int commandCodes[COMM_QTY]={COMMAND_SCREENSAVER,COMMAND_TEST, COMMAND_HELP,COMMAND_SHUTDOWN,COMMAND_CLEAR, COMMAND_FORTUNE, COMMAND_GETPAGE, COMMAND_RETPAGE};
+	int commandCodes[COMM_QTY]={COMMAND_SCREENSAVER,COMMAND_TEST, COMMAND_HELP,COMMAND_SHUTDOWN,COMMAND_CLEAR, COMMAND_FORTUNE, COMMAND_GETPAGE, COMMAND_RETPAGE, COMMAND_DEBUG};
 
 	/*Arreglo con los nombres de los comandos en sus respectivos lugares*/
 	char* commands[COMM_QTY];
@@ -196,6 +202,7 @@ static void populateCommands(Command * c)
 	commands[COMMAND_FORTUNE]= "fortune";
 	commands[COMMAND_GETPAGE] ="getPage";
 	commands[COMMAND_RETPAGE] = "retPage";
+	commands[COMMAND_DEBUG] = "debug";
 
 	/*Los punteros de funcion a los comandos y un arreglo que los contenga*/
 	commandFnct helpex = help;
@@ -206,6 +213,7 @@ static void populateCommands(Command * c)
 	commandFnct fortunex = fortune;
 	commandFnct getPageex = getPageCommand;
 	commandFnct retPageex = retPageCommand;
+	commandFnct debugx = debug;
 
 	/*Arreglo con los punteros a funcion en sus respectivos lugares*/
 	commandFnct command_execs[COMM_QTY];
@@ -217,6 +225,7 @@ static void populateCommands(Command * c)
 	command_execs[COMMAND_FORTUNE] = fortunex;
 	command_execs[COMMAND_GETPAGE] = getPageex;
 	command_execs[COMMAND_RETPAGE] = retPageex;
+	command_execs[COMMAND_DEBUG] = debugx;
 
 	/*Arreglos con los flags de cada comando*/
 	char * screenSaverFlags[SSAVERFLAGS]={"s","p","l"};
@@ -228,6 +237,7 @@ static void populateCommands(Command * c)
 	char * fortuneFlags[FORTUNEFLAGS]={""};
 	char * getPageFlags[GETPAGEFLAGS]={""};
 	char * retPageFlags[RETPAGEFLAGS]={"i"};
+	char * debugflags[DEBUGFLAGS] = {""};
 
 	/*Arreglo que contiene la cantidad de flags de cada comando
 	 * en sus respectivas posiciones
@@ -241,6 +251,7 @@ static void populateCommands(Command * c)
 	flagsqtys[COMMAND_FORTUNE]=FORTUNEFLAGS;
 	flagsqtys[COMMAND_GETPAGE] = GETPAGEFLAGS;
 	flagsqtys[COMMAND_RETPAGE] = RETPAGEFLAGS;
+	flagsqtys[COMMAND_DEBUG] = DEBUGFLAGS;
 	/*Este arreglo de arreglos va a tener todos los flags de cada comando
 	 * en sus respectivos lugares.
 	 */
@@ -254,6 +265,7 @@ static void populateCommands(Command * c)
 	flags[COMMAND_FORTUNE]=fortuneFlags;
 	flags[COMMAND_GETPAGE]=getPageFlags;
 	flags[COMMAND_RETPAGE]=retPageFlags;
+	flags[COMMAND_DEBUG]= debugflags;
 
 	for ( i = 0; i < COMM_QTY; i++)
 	{
