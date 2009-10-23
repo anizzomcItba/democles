@@ -7,7 +7,7 @@
 #ifndef SCHED_H_
 #define SCHED_H_
 
-#define NAME_LENGTH 30
+#define NAME_LENGTH 28
 
 typedef enum {WAITING, BLOCKED, READY, RUNNING, DEAD, FREE, ZOMBIE} status_t;
 

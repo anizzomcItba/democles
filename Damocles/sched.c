@@ -158,22 +158,23 @@ void schedResetStatics(){
 void breakpoint();
 
 int schedGetInfo(schedProcData_t data[], int max){
-	int i;
-	int slot = sched[currentSlot].nextSlot;
+	int i,j;
 
 	/* Copio, mientras sea menor que max y no haya recorrido todos los
 	 * procesos, al array pasado como argumento.
 	 */
-	for(i = 0 ; i < max && slot != currentSlot ;i++){
 
-		breakpoint();
+	for(j = 0, i = 0; j < MAX_PROCESS && i <= max; j++){
+		if(sched[j].status != FREE){
+			breakpoint();
 
-		strcpy(data[i].name, sched[slot].name);
-		data[i].pid = sched[slot].pid;
-		data[i].priority = sched[slot].priority;
-		data[i].ticks = sched[slot].ticks;
-		data[i].status = sched[slot].status;
-		slot = sched[slot].nextSlot;
+			strcpy(data[i].name, sched[j].name);
+			data[i].pid = sched[j].pid;
+			data[i].priority = sched[j].priority;
+			data[i].ticks = sched[j].ticks;
+			data[i].status = sched[j].status;
+			i++;
+		}
 	}
 
 	return i;
