@@ -160,7 +160,10 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	while(1){
 		//shell();
-		sleep(1);
+		_cli();
+		schedResetStatics();
+		_sti();
+		sleep(5000);
 	}
 
 	kprint("System Halted");

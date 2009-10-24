@@ -10,7 +10,7 @@
  * saverInit () 
  *
  * inicializa las variables que necesita el protector de pantalla
- * para funcionar. Setea todo en el default. Es llamada en el kernel
+ * para funcionar. Setea el default. Es llamada en el kernel
  * cuando inicializa el resto de las cosas.
  * */
 
