@@ -18,26 +18,24 @@ int procCreate(char *name, process_t p, void *stack, void *heap,
 
 void procSetup();
 
-
 void procSaveStack(byte *stackPtr);
 
-int procKill(int pid);
+int procKill(int pid); //TODO
 
-int procEnd(int retval);
+int procEnd(int retval); //TODO
 
-int procSign(int pid, int signal);
+int procSign(int pid, int signal); //TODO
 
-int procRetVal(int pid);
+int procRetVal(int pid); //TODO
 
-void procEnableMem(int pid);
+void procEnableMem(int pid); //TODO
 
-void procDisableMem(int pid);
+void procDisableMem(int pid); //TODO
 
 int procAttachedTTY(int pid);
 
 int procGetFD(int fd);
 
 dword procGetStack(int pid);
-
 
 #endif /* PROCESS_H_ */

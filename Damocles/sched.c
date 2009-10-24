@@ -7,6 +7,8 @@
 #include "include/sysasm.h"
 #include "include/syslib.h"
 
+void breakpoint();
+
 #define MAX_HEAPPAGES 10
 #define MAX_STACKPAGES 1
 #define MAX_OPENFILES 10
@@ -33,7 +35,7 @@ static procces_scheduler_t sched[MAX_PROCESS];
 
 static int getFreeSlot();
 static int findSlot(int pid);
-
+static int findPrevSlot(int slot);
 
 void schedSetUp(){
 	int i;
@@ -116,6 +118,14 @@ dword schedSchedule(){
 		//TODO: EnablePages(newSlot.pid);
 	}
 
+	if(sched[oldSlot].status == DEAD){
+		/* Este proceso hay que desalojarlo del scheduler */
+		int prevSlot = findPrevSlot(oldSlot);
+		sched[prevSlot].nextSlot = sched[oldSlot].nextSlot;
+		sched[oldSlot].status = FREE;
+		processCant--;
+	}
+
 	sched[currentSlot].ticks++;
 	sched[currentSlot].status = RUNNING;
 	return procGetStack(sched[currentSlot].pid);
@@ -145,17 +155,12 @@ int schedAdd(int pid,char *name, int priority){
 
 
 void schedResetStatics(){
-	int slot = currentSlot;
+	int i;
 
-	while(1){
-		sched[slot].ticks = 0;
-		slot = sched[slot].nextSlot;
-		if(slot == currentSlot)
-			break;
-	}
+	for(i = 0 ; i < MAX_PROCESS ; i++)
+		sched[i].ticks = 0;
+
 }
-
-void breakpoint();
 
 int schedGetInfo(schedProcData_t data[], int max){
 	int i,j;
@@ -166,8 +171,6 @@ int schedGetInfo(schedProcData_t data[], int max){
 
 	for(j = 0, i = 0; j < MAX_PROCESS && i <= max; j++){
 		if(sched[j].status != FREE){
-			breakpoint();
-
 			strcpy(data[i].name, sched[j].name);
 			data[i].pid = sched[j].pid;
 			data[i].priority = sched[j].priority;
@@ -210,32 +213,51 @@ int schedCurrentProcess(){
 	return sched[currentSlot].pid;
 }
 
+/* Marca un proceso como muerto, no lo borra enseguida porque sinó
+ * el scheduler si tiene otra cosa que hacer
+ */
 int schedRemove(int pid){
+	int slot;
 
-	int f = disableInts();
-
-	int slot = currentSlot;
 
 	if(pid == IDLE_PROCCES || pid == INIT_PROCESS)
 		/* No se pueden desalojar estos procesos */
 		return 0;
 
+	slot = findSlot(pid);
 
-	/* Busco al slot del  proceso anterior al desalojar */
-	while(sched[sched[slot].nextSlot].pid != pid){
-		slot = sched[slot].nextSlot;
-		if(slot == currentSlot){
-			return 0;
-		}
-	}
+	if(slot == -1)
+		return -1;
 
-	sched[sched[slot].nextSlot].status = FREE;
-	sched[slot].nextSlot = sched[sched[slot].nextSlot].nextSlot;
-	processCant--;
-
-	restoreInts(f);
-
+	sched[slot].status = DEAD;
 	return 1;
+
+//
+//	int f = disableInts();
+//	int slot;
+//
+;
+//
+//	slot = findSlot(pid);
+//	if()
+//
+//
+//
+//	/* Busco al slot del  proceso anterior al desalojar */
+//	while(sched[sched[slot].nextSlot].pid != pid){
+//		slot = sched[slot].nextSlot;
+//		if(slot == currentSlot){
+//			return 0;
+//		}
+//	}
+//
+//	sched[sched[slot].nextSlot].status = FREE;
+//	sched[slot].nextSlot = sched[sched[slot].nextSlot].nextSlot;
+//	processCant--;
+//
+//	restoreInts(f);
+//
+//	return 1;
 
 }
 
@@ -283,6 +305,22 @@ static int getFreeSlot(){
 	return -1;
 }
 
+
+/* Busco al slot que tiene como siguiente slot al pasado como parámetro.
+ * No debería llamarse con IDLE porque nunca se encontraría el slot previo
+ */
+static int findPrevSlot(int slot){
+	int prevSlot = sched[slot].nextSlot;
+
+	if(slot == IDLE_PROCCES)
+		return -1;
+
+	do {
+		prevSlot = sched[prevSlot].nextSlot;
+	} while(slot != sched[prevSlot].nextSlot);
+
+	return prevSlot;
+}
 
 static int findSlot(int pid){
 	int slot = currentSlot;

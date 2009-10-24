@@ -4,13 +4,14 @@
 #include "../include/stdio.h"
 
 static char *statusString(status_t status);
+static int getTotal(schedProcData_t data[], int cant);
 
 int top(int argc, char **argv){
 
 
 	int currentProcess;
 	schedProcData_t data[10];
-	int running, i;
+	int running, i, totalticks;
 
 //	if(argc != 2){
 //		printf("Cantidad de argumentos inválida!\n");
@@ -28,10 +29,13 @@ int top(int argc, char **argv){
 		setCursor(0, 0);
 		kprintf("Cantidad de procesos: \n", currentProcess);
 		kprintf("PID\t\tNombre\t\tTicks\t\tPriority\t\tStatus\n");
+
+		totalticks = getTotal(data, running);
+
 		for (i = 0 ; i < running ; i++){
-			kprintf("%d\t\t%s\t\t%d\t\t%d\t\t%s\n",data[i].pid, data[i].name, data[i].ticks,
+			kprintf("%d\t\t%s\t\t%d\t\t%d\t\t%s\n",data[i].pid, data[i].name, (100*data[i].ticks)/totalticks,
 					data[i].priority, statusString(data[i].status));
-			//kprintf("%d\n", data[i].pid);
+
 		}
 		sleep(2000);
 	}
@@ -40,6 +44,16 @@ int top(int argc, char **argv){
 
 }
 
+
+static int getTotal(schedProcData_t data[], int cant){
+	int acum;
+	int i;
+
+	for(i = 0 ; i < cant ; i++)
+		acum += data[i].ticks;
+
+	return acum;
+}
 
 static char *statusString(status_t status){
 	char *ret;
@@ -52,7 +66,7 @@ static char *statusString(status_t status){
 		break;
 	case READY:
 	case RUNNING:
-		ret = "READY";
+		ret = "RUNNING";
 		break;
 	default:
 		ret = "STATUS?";

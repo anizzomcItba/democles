@@ -25,7 +25,6 @@ int strlen(const char *str){
 	return i;
 }
 
-//TODO: cambiar esta funcion,
 //fuente: http://www.gnu.org/software/grub/manual/multiboot/multiboot.html
 void itoa (char *buf, int base, int d)
 {

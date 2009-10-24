@@ -8,13 +8,12 @@
 #include "include/sysasm.h"
 #include "include/process.h"
 
-#define NAME_LENGTH 30
 #define MAX_HEAPPAGES 10
 #define MAX_STACKPAGES 1
 #define MAX_OPENFILES 10
 #define INIT_PROCESS 0
 #define MAX_PROCESS_ARGS 20
-#define IDLE_PROCCES 1	//TODO: Cambiar al pid del proceso iddle
+#define IDLE_PROCCES 1
 
 typedef struct {
 	int pid;

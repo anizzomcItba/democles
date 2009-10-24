@@ -197,7 +197,6 @@ void _vtcflush(int page, void *buff, size_t qty){
 				renderline[coord.y] = 1;
 				videopages[page][(coord.y*VIDEO_COLS+ coord.x)*2] = ' ';
 				coord.x++;
-				//TODO: Mejorar este código
 				if(coord.x >= VIDEO_COLS){
 					coord.x = 0;
 					coord.y++;
