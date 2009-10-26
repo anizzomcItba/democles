@@ -131,6 +131,10 @@ static byte *buildStack(byte *stack, process_t p, int argc, char **argv){
 
 int procKill(int pid){
 
+	if(pid == IDLE_PROCCES || pid == INIT_PROCESS)
+		/* Estos procesos no se pueden matar */
+		return 0;
+
 	if(proc[pid%MAX_PROCESS].pid != pid)
 		return 0;
 
@@ -178,14 +182,13 @@ void procEnd(int retval){
 
 void procReadyToRemove(int pid){
 
-	if(proc[pid%MAX_PROCESS].readyToRemove){
+	if(proc[pid%MAX_PROCESS].readyToRemove)
 		/* Si el procso ya estba listo para remover, lo remuevo, sinó
 		 * lo marco como listo */
 		deallocProcess(pid);
-	}
-	else{
+	else
 		proc[pid%MAX_PROCESS].readyToRemove = 1;
-	}
+
 
 	return;
 }
@@ -198,7 +201,7 @@ int procSign(int pid, int signal){
 
 int procRetVal(int pid){
 	int i = proc[pid%MAX_PROCESS].retval;
-
+	//TODO: Acá debería hacer un dec de un sem
 	/* Si el proceso estaba listo para remover, lo libero */
 	if(proc[pid%MAX_PROCESS].readyToRemove)
 		deallocProcess(pid);
