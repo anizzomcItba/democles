@@ -822,7 +822,7 @@ fetchCommand(char letra)
 		index = 0;
 		if ( hist_pos == 0 )
 			hist_pos = MAX_COMMANDS_HIST;
-		write(STDIN,history[hist_pos-1],strlen(history[hist_pos-1]));
+		//write(STDIN,history[hist_pos-1],strlen(history[hist_pos-1])); //XXX
 
 		hist_pos--;
 	}
@@ -836,7 +836,7 @@ fetchCommand(char letra)
 		index=0;
 		if(hist_pos == (MAX_COMMANDS_HIST -1))
 			hist_pos = -1;
-		write(STDIN,history[hist_pos+1],strlen(history[hist_pos+1]));
+		//write(STDIN,history[hist_pos+1],strlen(history[hist_pos+1])); //XXX
 
 		hist_pos++;
 

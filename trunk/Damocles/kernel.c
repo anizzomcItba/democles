@@ -32,6 +32,9 @@ DESCR_INT idt[0x81];			/* IDT de 81h entradas*/
 IDTR idtr;				/* IDTR */
 
 
+static void *temporalSchedStack;
+static void *temporalFaultStack;
+
 void top(int argc, char **argv);
 
 void foo(int argc, char *argv[]){
@@ -50,7 +53,6 @@ void foo(int argc, char *argv[]){
 	}
 }
 
-//static char stack1[4096]; //TODO: Esto lo debería retornar el mmu
 
 
 /**********************************************
@@ -65,7 +67,11 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	fdTableInit();
 	schedSetUp();
 	procSetup();
+	startPaging();
 
+
+	temporalSchedStack = (void *)getPage();
+	temporalFaultStack = (void *)getPage();
 
 
 
@@ -88,10 +94,6 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	idtr.limit = sizeof(idt)-1;
 
 	_lidt(&idtr);
-
-
-	startPaging();
-
 
 
 	mouseCallback callbck;
@@ -172,6 +174,10 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 }
 
 
+
+
+
+
 /***************************************************************
 *setup_IDT_entry
 * Inicializa un descriptor de la IDT
@@ -182,6 +188,10 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 *	 Derechos de acceso del segmento
 *	 Cero
 ****************************************************************/
+
+void *getTemporalSchedStack(){
+	return temporalSchedStack;
+}
 
 void setup_IDT_entry (DESCR_INT *item, byte selector, dword offset, byte access,
 			 byte cero) {

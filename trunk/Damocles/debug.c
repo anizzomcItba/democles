@@ -1,16 +1,40 @@
 
 #include "include/stdio.h"
 #include "include/sched.h"
+#include "include/io.h"
+#include "include/process.h"
+#include "include/mmu.h"
+#include "include/sysasm.h"
+#include "include/syscall.h"
+
+static int pid = -1;
+
+int bar(int argc, char **argv){
+	int i;
+
+	for(i = 0 ; i < 30 ; i++){
+		printf("Tick %d\n", i);
+		sleep(1000);
+	}
+	return 7;
+}
 
 
 void debug(){
+	int fds[3] = { IN_3 , TTY_3, TTY_CURSOR_3};
 
-	int i;
-	while(i++);
 	_cli();
-	schedRemove(schedCurrentProcess());
+
+	if(pid != -1){
+		breakpoint();
+		procKill(pid);
+	}
+
+	pid = procCreate("bar", (process_t)bar, (void *)getPage(), NULL, fds, 3, 0, NULL, 3, 0, 0);
+	printf("Pid: %d\n", pid);
 	_sti();
-	yield();
+
+
 }
 
 void breakpoint(){

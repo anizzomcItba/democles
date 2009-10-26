@@ -90,9 +90,6 @@ void schedTicks(){
 }
 
 dword schedSchedule(){
-	//TODO: Esto debería correr sobre un stack temporal, al igual que
-	//Ticks
-
 	int newSlot, oldSlot;
 
 	newSlot = oldSlot = currentSlot;
@@ -114,14 +111,15 @@ dword schedSchedule(){
 	}
 
 	if(oldSlot != currentSlot){
-		//TODO: DisablePages(oldSlot.pid);
-		//TODO: EnablePages(newSlot.pid);
+		procDisableMem(sched[oldSlot].pid);
+		procEnableMem(sched[newSlot].pid);
 	}
 
 	if(sched[oldSlot].status == DEAD){
 		/* Este proceso hay que desalojarlo del scheduler */
 		int prevSlot = findPrevSlot(oldSlot);
 		sched[prevSlot].nextSlot = sched[oldSlot].nextSlot;
+		procReadyToRemove(sched[oldSlot].pid);
 		sched[oldSlot].status = FREE;
 		processCant--;
 	}
@@ -231,34 +229,6 @@ int schedRemove(int pid){
 
 	sched[slot].status = DEAD;
 	return 1;
-
-//
-//	int f = disableInts();
-//	int slot;
-//
-;
-//
-//	slot = findSlot(pid);
-//	if()
-//
-//
-//
-//	/* Busco al slot del  proceso anterior al desalojar */
-//	while(sched[sched[slot].nextSlot].pid != pid){
-//		slot = sched[slot].nextSlot;
-//		if(slot == currentSlot){
-//			return 0;
-//		}
-//	}
-//
-//	sched[sched[slot].nextSlot].status = FREE;
-//	sched[slot].nextSlot = sched[sched[slot].nextSlot].nextSlot;
-//	processCant--;
-//
-//	restoreInts(f);
-//
-//	return 1;
-
 }
 
 
