@@ -10,7 +10,7 @@
 #define MAX_PROCESS 71
 
 
-typedef void(*process_t)(int, char**);
+typedef int(*process_t)(int, char**);
 
 /* Crea un proceso */
 int procCreate(char *name, process_t p, void *stack, void *heap,
@@ -22,15 +22,17 @@ void procSaveStack(byte *stackPtr);
 
 int procKill(int pid); //TODO
 
-int procEnd(int retval); //TODO
+void procEnd(int retval);
 
 int procSign(int pid, int signal); //TODO
 
-int procRetVal(int pid); //TODO
+int procRetVal(int pid);
 
-void procEnableMem(int pid); //TODO
+void procEnableMem(int pid);
 
-void procDisableMem(int pid); //TODO
+void procDisableMem(int pid);
+
+void procReadyToRemove(int pid);
 
 int procAttachedTTY(int pid);
 

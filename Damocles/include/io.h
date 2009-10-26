@@ -2,6 +2,8 @@
 #ifndef __IO_H_
 #define __IO_H_
 
+#include "defs.h"
+
 
 void syswrite(int fd, char * buffer, size_t qty);
 void sysread(int fd, char * buffer, size_t qty);

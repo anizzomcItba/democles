@@ -2,6 +2,10 @@
 #include "../include/sched.h" //XXX: Syscall!
 #include "../include/process.h" //XXX: Syscall
 #include "../include/stdio.h"
+#include "../include/video.h"
+#include "../include/syscall.h"
+
+
 
 static char *statusString(status_t status);
 static int getTotal(schedProcData_t data[], int cant);

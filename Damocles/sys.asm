@@ -27,6 +27,7 @@ EXTERN procSaveStack
 EXTERN schedSchedule
 EXTERN schedTicks
 EXTERN _dispatcher
+EXTERN getTemporalSchedStack
 
 
 
@@ -159,7 +160,8 @@ int_08_handler:
 	push esp
 	call procSaveStack
 
-	;TODO: Obtener un stack especial
+	call getTemporalSchedStack
+	mov esp, eax
 
 	call schedTicks	;Descuenta un tick a todos los procesos esperando
 
@@ -181,7 +183,9 @@ int_7F_handler:
 	push esp
 	call procSaveStack
 
-	;TODO: Obtener un stack especial
+	call getTemporalSchedStack
+	mov esp, eax
+
 
 	call schedSchedule
 	mov esp, eax

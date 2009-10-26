@@ -4,6 +4,7 @@
 #include "include/defs.h"
 #include "include/io.h"
 #include "include/process.h"
+#include "include/syslib.h"
 
 void *sysfRead(void **args);
 void *sysfWrite(void **args);
@@ -12,13 +13,14 @@ void *sysfgetCursor(void **arg);
 void *sysfsetCursor(void **args);
 void *sysfclearScreen(void **args);
 void *sysfSleep(void **args);
+void *sysfExit(void **args);
 
 typedef void *(*sysfT)(void **);
 
 sysfT syscalls[] = {
 		sysfRead, sysfWrite, sysfFlush, NULL, NULL, /* 0 - 4 */
 		NULL, NULL, NULL, NULL, NULL, /*  5- 9 */
-		sysfSleep, NULL, NULL, NULL, NULL, /* 10 - 14 */
+		sysfSleep, sysfExit, NULL, NULL, NULL, /* 10 - 14 */
 		NULL, NULL, NULL, NULL, NULL, /* 15 - 19 */
 		NULL, NULL, NULL, NULL, NULL, /* 20 - 24 */
 		sysfsetCursor, sysfgetCursor, sysfclearScreen, NULL, NULL /* 25 - 29 */
@@ -51,6 +53,16 @@ void *sysfWrite(void **args){
 
 void *sysfFlush(void **args){
 	sysflush((int) args[0]);
+	return NULL;
+}
+
+void *sysfExit(void **args){
+	int f = disableInts();
+	procEnd((int) args[0]);
+	restoreInts(f);
+	yield();
+	/* Nunca se va llegar a ejecutar este punto puesto que el scheduler
+	 * no va a pasar por acá */
 	return NULL;
 }
 
