@@ -27,11 +27,14 @@ void debug(){
 
 	if(pid != -1){
 		breakpoint();
-		procKill(pid);
+		printf("Ret: %d\n",procRetVal(pid));
+		pid = -1;
 	}
-
+	else
+	{
 	pid = procCreate("bar", (process_t)bar, (void *)getPage(), NULL, fds, 3, 0, NULL, 3, 0, 0);
 	printf("Pid: %d\n", pid);
+	}
 	_sti();
 
 

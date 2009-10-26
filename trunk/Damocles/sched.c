@@ -104,6 +104,16 @@ dword schedSchedule(){
 			currentSlot = newSlot;
 			break;
 		}
+
+		if(sched[newSlot].status == DEAD){
+			/* Este proceso hay que desalojarlo del scheduler */
+			int prevSlot = findPrevSlot(newSlot);
+			sched[prevSlot].nextSlot = sched[newSlot].nextSlot;
+			procReadyToRemove(sched[newSlot].pid);
+			sched[newSlot].status = FREE;
+			processCant--;
+		}
+
 		if(newSlot == oldSlot){
 			currentSlot = IDLE_PROCCES;
 			break;
@@ -115,14 +125,6 @@ dword schedSchedule(){
 		procEnableMem(sched[newSlot].pid);
 	}
 
-	if(sched[oldSlot].status == DEAD){
-		/* Este proceso hay que desalojarlo del scheduler */
-		int prevSlot = findPrevSlot(oldSlot);
-		sched[prevSlot].nextSlot = sched[oldSlot].nextSlot;
-		procReadyToRemove(sched[oldSlot].pid);
-		sched[oldSlot].status = FREE;
-		processCant--;
-	}
 
 	sched[currentSlot].ticks++;
 	sched[currentSlot].status = RUNNING;
