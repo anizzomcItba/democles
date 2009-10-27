@@ -23,6 +23,7 @@ dword gFlags(); /* Retorna la palabra de flags */
 void sFlags(dword flags); /* Setea la palabra de flags */
 
 
+void		int_0E_handler();	/* page fault */
 void		int_08_handler();      /* Timer tick */
 void		int_7F_handler();	/* yield syscall */
 void		int_80_handler();

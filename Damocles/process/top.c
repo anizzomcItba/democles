@@ -4,6 +4,7 @@
 #include "../include/stdio.h"
 #include "../include/video.h"
 #include "../include/syscall.h"
+#include "../include/sysasm.h"
 
 
 
