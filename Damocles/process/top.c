@@ -71,21 +71,15 @@ static int getTotal(schedProcData_t data[], int cant){
 }
 
 static void order(schedProcData_t * data, int len, schedProcData_t aux){
-	int i, j, flag=0;
-//	schedProcData_t aux;
+	int i, j;
 	for(i=0; i<len; i++){
 		for(j=0; j<len; j++){
-			if(data[i].ticks < data[j].ticks){
-				flag=1;
+			if(data[i].ticks > data[j].ticks){
 				aux=data[i];
 				data[i]=data[j];
 				data[j]=aux;
 			}
 		}
-		if(flag==0){
-			break;
-		}
-		flag=0;
 	}
 	return;
 }
