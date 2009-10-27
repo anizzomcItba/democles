@@ -121,8 +121,8 @@ dword schedSchedule(){
 	}
 
 	if(oldSlot != currentSlot){
-		procDisableMem(sched[oldSlot].pid);
-		procEnableMem(sched[newSlot].pid);
+		//procDisableMem(sched[oldSlot].pid); TODO debuggear en la tarde
+		//procEnableMem(sched[newSlot].pid);
 	}
 
 

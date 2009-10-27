@@ -10,6 +10,7 @@
 
 static char *statusString(status_t status);
 static int getTotal(schedProcData_t data[], int cant);
+static void order(schedProcData_t * data, int len, schedProcData_t aux);
 
 int top(int argc, char **argv){
 
@@ -17,6 +18,7 @@ int top(int argc, char **argv){
 	int currentProcess;
 	schedProcData_t data[10];
 	int running, i, totalticks;
+	schedProcData_t aux;
 
 //	if(argc != 2){
 //		printf("Cantidad de argumentos inválida!\n");
@@ -37,10 +39,18 @@ int top(int argc, char **argv){
 
 		totalticks = getTotal(data, running);
 
-		for (i = 0 ; i < running ; i++){
-			kprintf("%d\t\t%s\t\t%d\t\t%d\t\t%s\n",data[i].pid, data[i].name, (100*data[i].ticks)/totalticks,
-					data[i].priority, statusString(data[i].status));
+		order(data, running, aux);
 
+		for (i = 0 ; i < running ; i++){
+			kprintf("%d", data[i].pid);
+			setCursor(13, 2+i);
+			kprintf("%s", data[i].name);
+			setCursor(29, 2+i);
+			kprintf("%d", (100*data[i].ticks)/totalticks);
+			setCursor(44, 2+i);
+			kprintf("%d", data[i].priority);
+			setCursor(62, 2+i);
+			kprintf("%s\n", statusString(data[i].status));
 		}
 		sleep(2000);
 	}
@@ -58,6 +68,26 @@ static int getTotal(schedProcData_t data[], int cant){
 		acum += data[i].ticks;
 
 	return acum;
+}
+
+static void order(schedProcData_t * data, int len, schedProcData_t aux){
+	int i, j, flag=0;
+//	schedProcData_t aux;
+	for(i=0; i<len; i++){
+		for(j=0; j<len; j++){
+			if(data[i].ticks < data[j].ticks){
+				flag=1;
+				aux=data[i];
+				data[i]=data[j];
+				data[j]=aux;
+			}
+		}
+		if(flag==0){
+			break;
+		}
+		flag=0;
+	}
+	return;
 }
 
 static char *statusString(status_t status){
@@ -79,3 +109,6 @@ static char *statusString(status_t status){
 
 	return ret;
 }
+
+
+
