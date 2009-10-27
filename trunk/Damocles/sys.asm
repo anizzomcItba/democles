@@ -1,3 +1,4 @@
+GLOBAL int_0E_handler
 GLOBAL int_7F_handler
 GLOBAL int_80_handler
 GLOBAL int_08_handler
@@ -20,6 +21,7 @@ GLOBAL syscall
 GLOBAL gFlags
 GLOBAL sFlags
 
+
 EXTERN keyboardRoutine
 EXTERN timerHandler
 EXTERN mouseRoutine
@@ -28,6 +30,9 @@ EXTERN schedSchedule
 EXTERN schedTicks
 EXTERN _dispatcher
 EXTERN getTemporalSchedStack
+EXTERN getTemporalFaultStack
+EXTERN breakpoint
+EXTERN pageFault
 
 
 
@@ -153,7 +158,7 @@ _out:
 	ret
 
 
-
+;Timer Tick Handler
 int_08_handler:
 	pushad
 
@@ -195,6 +200,7 @@ int_7F_handler:
 	iret
 
 
+;Keyboard Handler
 int_09_handler:
 		pusha
 		in	al, 60h
@@ -206,6 +212,7 @@ int_09_handler:
 		popa
 		iret
 
+; Mouse Handler
 int_74_handler:
 		pusha
 		in al, 60h
@@ -218,6 +225,17 @@ int_74_handler:
 		popa
 		iret
 
+
+;Page exeption
+int_0E_handler:
+
+	call getTemporalFaultStack
+	mov esp, eax
+
+	call pageFault
+	; Esta función no retorna nunca más.
+
+	iret
 
 halt:
 	hlt
