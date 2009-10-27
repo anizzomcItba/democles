@@ -22,10 +22,11 @@ gcc -Wall -g -c syscall.c -o syscall.o -fno-builtin
 gcc -Wall -g -c ttys.c -o ttys.o -fno-builtin
 gcc -Wall -g -c process.c -o process.o -fno-builtin
 gcc -Wall -g -c semaphore.c -o semaphore.o -fno-builtin
+gcc -Wall -g -c debug.c -o debug.o -fno-builtin
 gcc -Wall -g -c lib/syslib.c -o syslib.o -fno-builtin
 gcc -Wall -g -c process/top.c -o top.o -fno-builtin
 gcc -Wall -g -m32 -c exceptions.c -o exceptions.o -fno-builtin
-ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o syslib.o top.o exceptions.o
+ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o syslib.o debug.o top.o exceptions.o
 rm *.o
 
 
