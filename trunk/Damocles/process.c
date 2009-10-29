@@ -7,6 +7,7 @@
 #include "include/io.h"
 #include "include/sysasm.h"
 #include "include/process.h"
+#include "include/stdio.h"
 #include "include/syslib.h"
 
 #define MAX_HEAPPAGES 10
@@ -57,7 +58,7 @@ static int getFreeSlot();
 static void freeProcessMemory(int pid);
 static void deallocProcess(int pid);
 
-void idle(int argc, char **argv);
+int idle(int argc, char **argv);
 
 
 /* Crea un proceso */
@@ -266,7 +267,14 @@ void procSetup(){
 	proc[INIT_PROCESS].fds[CURSOR] = TTY_CURSOR_0;
 
 
-	unsigned int idle_stack = getPage();
+	int fds[3];
+	fds[STDIN] = IN_0;
+	fds[STDOUT] = TTY_0;
+	fds[CURSOR] = TTY_CURSOR_0;
+
+
+
+/*
 
 	strcpy(proc[IDLE_PROCCES].name, "idle");
 	proc[IDLE_PROCCES].pid = IDLE_PROCCES;
@@ -281,10 +289,9 @@ void procSetup(){
 	proc[IDLE_PROCCES].fds[CURSOR] = TTY_CURSOR_0;
 	proc[IDLE_PROCCES].ESP =(byte*) buildStack((byte*)idle_stack, (process_t)idle, 0, NULL);
 
-
-
+*/
 	schedSetUpInit(INIT_PROCESS, "init", 0);
-	schedSetUpIdle(IDLE_PROCCES, "iddle", 0);
+	schedSetUpIdle(procCreate("idle", (process_t)idle, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0));
 
 	return;
 }
@@ -323,8 +330,9 @@ static int getFreeSlot(){
 	return -1;
 }
 
-void idle(int argc, char **argv){
+int idle(int argc, char **argv){
 	while(1){
+		//printf("\t\tHalted!\n");
 		halt();
 	}
 }

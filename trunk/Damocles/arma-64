@@ -24,7 +24,7 @@ gcc -Wall -g -m32 -c process.c -o process.o -fno-builtin
 gcc -Wall -g -m32 -c semaphore.c -o semaphore.o -fno-builtin
 gcc -Wall -g -m32 -c lib/syslib.c -o syslib.o -fno-builtin
 gcc -Wall -g -m32 -c debug.c -o debug.o -fno-builtin
-gcc -Wall -g -m32 -c process/top.c -o top.o -fno-builtin
+gcc -Wall -g -m32 -c process/top.c -o top.o -fno-builtin -fno-stack-protector
 gcc -Wall -g -m32 -c exceptions.c -o exceptions.o -fno-builtin
 ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o syslib.o debug.o top.o exceptions.o
 rm *.o

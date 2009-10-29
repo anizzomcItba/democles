@@ -60,7 +60,7 @@ int schedChangeStatus(int pid, status_t status);
 
 void schedSetUpInit(int pid, char *name, int priroty);
 
-void schedSetUpIdle(int pid, char *name, int priroty);
+void schedSetUpIdle(int pid);
 
 /* Retorna la cantidad de procesos que hay en el scheduler */
 int schedCantProcess();

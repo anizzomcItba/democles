@@ -14,9 +14,10 @@ void breakpoint();
 #define MAX_OPENFILES 10
 #define INIT_PROCESS 0
 #define MAX_PROCESS_ARGS 20
-#define IDLE_PROCCES 1
+
 
 static int currentSlot;
+static int idle_slot = -1;
 static int processCant = 0;
 
 
@@ -53,17 +54,12 @@ void schedSetUpInit(int pid, char *name, int priroty){
 	sched[INIT_PROCESS].priority = priroty;
 	sched[INIT_PROCESS].nextSlot = INIT_PROCESS;
 	sched[INIT_PROCESS].ticks = 0;
-	processCant++;
+	currentSlot = INIT_PROCESS;
+	processCant = 1;
 }
 
-void schedSetUpIdle(int pid, char *name, int priority){
-	sched[IDLE_PROCCES].pid = pid;
-	strcpy(sched[IDLE_PROCCES].name, name);
-	sched[IDLE_PROCCES].status = READY;
-	sched[IDLE_PROCCES].priority = priority;
-	sched[IDLE_PROCCES].nextSlot = INIT_PROCESS;
-	sched[IDLE_PROCCES].ticks = 0;
-	processCant++;
+void schedSetUpIdle(int pid){
+	idle_slot = findSlot(pid);
 }
 /* Función que decrementa los ticks que se estan esperando para ejecutar
  * nuvamente.
@@ -72,11 +68,7 @@ void schedSetUpIdle(int pid, char *name, int priority){
 void schedTicks(){
 	int slot, starting;
 
-	/* Si el proceso actual es IDDLE, lo salteo */
-	if(currentSlot == IDLE_PROCCES)
-		slot = starting = sched[currentSlot].nextSlot;
-	else
-		slot = starting = currentSlot;
+	slot = starting = currentSlot;
 
 	do {
 		/* Si el proceso está esperando, le decremento en 1 los ticks */
@@ -92,15 +84,28 @@ void schedTicks(){
 dword schedSchedule(){
 	int newSlot, oldSlot;
 
-	newSlot = oldSlot = currentSlot;
+	oldSlot = newSlot = currentSlot;
 
 	/* Si el proceso estaba corriendo, es porque está listo para correr */
 	if(sched[currentSlot].status == RUNNING)
 		sched[currentSlot].status = READY;
 
+
+	int i = 0;
 	while(1){
+		/* Cuento por la cantidad de procesos que iteré */
+		i++;
+
 		newSlot = sched[newSlot].nextSlot;
-		if(sched[newSlot].status == READY){
+
+		/* No scheduleo sobre el Idle Process, lo salteo */
+		if(newSlot == idle_slot)
+			continue;
+
+
+		if(sched[newSlot].status == READY)
+		{
+			/* Encontré un proceso listo para correr, lo asigno */
 			currentSlot = newSlot;
 			break;
 		}
@@ -112,25 +117,29 @@ dword schedSchedule(){
 			procReadyToRemove(sched[newSlot].pid);
 			sched[newSlot].status = FREE;
 			processCant--;
+			continue;
 		}
 
-		if(newSlot == oldSlot){
-			currentSlot = IDLE_PROCCES;
+		if(i > processCant){
+			/* Recorrí todos los elemtos y no hay
+			 * nadie listo para correr, va a correr el
+			 * IDLE Process
+			 */
+			currentSlot = idle_slot;
 			break;
 		}
 	}
 
 	if(oldSlot != currentSlot){
-		//procDisableMem(sched[oldSlot].pid); TODO debuggear en la tarde
-		//procEnableMem(sched[newSlot].pid);
+		/* Si es el mismo proceso que antes, no hago nada con la memoria */
+		procDisableMem(sched[oldSlot].pid);
+		procEnableMem(sched[currentSlot].pid);
 	}
-
 
 	sched[currentSlot].ticks++;
 	sched[currentSlot].status = RUNNING;
 	return procGetStack(sched[currentSlot].pid);
 }
-
 int schedAdd(int pid,char *name, int priority){
 	int slot = getFreeSlot();
 
@@ -155,30 +164,38 @@ int schedAdd(int pid,char *name, int priority){
 
 
 void schedResetStatics(){
-	int i;
+	int oldSlot, newSlot;
 
-	for(i = 0 ; i < MAX_PROCESS ; i++)
-		sched[i].ticks = 0;
+	oldSlot = newSlot = currentSlot;
+
+	do {
+		newSlot = sched[newSlot].nextSlot;
+		sched[newSlot].ticks = 0;
+	} while(oldSlot != newSlot);
 
 }
 
 int schedGetInfo(schedProcData_t data[], int max){
-	int i,j;
+	int i;
+	int oldSlot, newSlot;
+
+	oldSlot = newSlot = currentSlot;
+	i = 0;
+
 
 	/* Copio, mientras sea menor que max y no haya recorrido todos los
 	 * procesos, al array pasado como argumento.
 	 */
 
-	for(j = 0, i = 0; j < MAX_PROCESS && i <= max; j++){
-		if(sched[j].status != FREE){
-			strcpy(data[i].name, sched[j].name);
-			data[i].pid = sched[j].pid;
-			data[i].priority = sched[j].priority;
-			data[i].ticks = sched[j].ticks;
-			data[i].status = sched[j].status;
-			i++;
-		}
-	}
+	do {
+		newSlot = sched[newSlot].nextSlot;
+		strcpy(data[i].name, sched[newSlot].name);
+		data[i].pid = sched[newSlot].pid;
+		data[i].priority = sched[newSlot].priority;
+		data[i].ticks = sched[newSlot].ticks;
+		data[i].status = sched[newSlot].status;
+		i++;
+	} while(newSlot != oldSlot && i < max);
 
 	return i;
 }
@@ -220,7 +237,7 @@ int schedRemove(int pid){
 	int slot;
 
 
-	if(pid == IDLE_PROCCES || pid == INIT_PROCESS)
+	if(pid == INIT_PROCESS)
 		/* No se pueden desalojar estos procesos */
 		return 0;
 
@@ -284,8 +301,6 @@ static int getFreeSlot(){
 static int findPrevSlot(int slot){
 	int prevSlot = sched[slot].nextSlot;
 
-	if(slot == IDLE_PROCCES)
-		return -1;
 
 	do {
 		prevSlot = sched[prevSlot].nextSlot;
