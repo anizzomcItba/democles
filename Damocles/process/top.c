@@ -10,7 +10,7 @@
 
 static char *statusString(status_t status);
 static int getTotal(schedProcData_t data[], int cant);
-static void order(schedProcData_t * data, int len, schedProcData_t aux);
+static void order(schedProcData_t * data, int len);
 
 int top(int argc, char **argv){
 
@@ -18,7 +18,6 @@ int top(int argc, char **argv){
 	int currentProcess;
 	schedProcData_t data[10];
 	int running, i, totalticks;
-	schedProcData_t aux;
 
 //	if(argc != 2){
 //		printf("Cantidad de argumentos inválida!\n");
@@ -34,12 +33,12 @@ int top(int argc, char **argv){
 
 		clearScreen();
 		setCursor(0, 0);
-		kprintf("Cantidad de procesos: \n", currentProcess);
-		kprintf("PID\t\tNombre\t\tTicks\t\tPriority\t\tStatus\n");
+		kprintf("Cantidad de procesos: %d\n", currentProcess);
+		kprintf("PID\t\tNombre\t\tUso\t\tPriority\t\tStatus\n");
 
 		totalticks = getTotal(data, running);
 
-		order(data, running, aux);
+		order(data, running);
 
 		for (i = 0 ; i < running ; i++){
 			kprintf("%d", data[i].pid);
@@ -70,7 +69,8 @@ static int getTotal(schedProcData_t data[], int cant){
 	return acum;
 }
 
-static void order(schedProcData_t * data, int len, schedProcData_t aux){
+static void order(schedProcData_t * data, int len){
+	schedProcData_t aux;
 	int i, j;
 	for(i=0; i<len; i++){
 		for(j=0; j<len; j++){

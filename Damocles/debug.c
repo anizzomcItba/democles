@@ -29,6 +29,6 @@ void debug(){
 }
 
 void breakpoint(){
-	asm("cli; hlt"); /* Hace un halt del micro y se para completamente */
+//	asm("cli; hlt"); /* Hace un halt del micro y se para completamente */
 }
 

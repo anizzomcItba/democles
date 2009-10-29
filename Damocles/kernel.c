@@ -48,36 +48,24 @@ void foo(int argc, char *argv[]){
 	while(1){
 		for(i = 0 ; i < 160 ; i++){
 			video[i] = j++;
-			sleep(100);
+			sleep(1000);
 		}
 	}
 }
-
 
 
 /**********************************************
 KERNEL
 *************************************************/
 
+int idle(int argc, char **argv);
+
+
 int _main(multiboot_info_t* mbd, unsigned int magic)
 {
-
-
-	semSetup();
-	fdTableInit();
-	schedSetUp();
-	procSetup();
-	startPaging();
-
-
-	temporalSchedStack = (void *)getPage();
-	temporalFaultStack = (void *)getPage();
-
-
-
-/* CARGA DE IDT CON LA RUTINA DE ATENCION DE IRQ0    */
-
-
+	/* Primero habilito la paginación porque los procesos default tienen
+	 * páginas.
+	 */
 
 
 
@@ -88,17 +76,26 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	setup_IDT_entry (&idt[0x7F], 0x08, (dword)&int_7F_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x80], 0x08, (dword)&int_80_handler, ACS_INT, 0);
 
-
-
-
-
-
-/* Carga de IDTR    */
+	/* Carga de IDTR    */
 
 	idtr.base =(dword) &idt;
 	idtr.limit = sizeof(idt)-1;
 
 	_lidt(&idtr);
+
+	startPaging();
+
+
+	/* Los stacks crecen hacia abajo, así que tengo que retornar el fondo
+	 * de la página */
+	temporalSchedStack = (void *)(getPage() + MEM_PAGE_SIZE);
+	temporalFaultStack = (void *)(getPage() + MEM_PAGE_SIZE);
+
+
+	semSetup();
+	fdTableInit();
+	schedSetUp();
+	procSetup();
 
 
 	mouseCallback callbck;
@@ -155,18 +152,15 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	procCreate("Top", (process_t)top, (void *)getPage(), NULL, fds, 3, 0, NULL, 2, 0, 0);
 
 
-	int a;
-	char *args[] = { "Argumento1", "Argumento2", "Argumento3"};
-	a = procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 3, args, 0, 0, 0);
-	printf("Foo : %d\n", a);
+	procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
 
 
 	_sti();
 
 	//setCursor(0, 0);
 
+
 	while(1){
-		//shell();
 		_cli();
 		schedResetStatics();
 		_sti();

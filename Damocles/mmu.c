@@ -42,7 +42,7 @@ void startPaging(void)
 
 			for(j = 0; j < 1024; j++)
 			{
-				//Seteo la entrada, todo lo que sea de los primeros 4 megas no los meto
+				//Seteo la entrada, lo que sea de los primeros 4 megas no los meto
 				//en el stack de paginas disponibles, porque estas son del kernel.
 
 				if(i == 0 )
