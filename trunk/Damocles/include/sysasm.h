@@ -22,14 +22,20 @@ void	yield();
 dword gFlags(); /* Retorna la palabra de flags */
 void sFlags(dword flags); /* Setea la palabra de flags */
 
-
+//void		inv_op_handler();   /* Invalid opcode */
 void		int_0E_handler();	/* page fault */
-void		int_08_handler();      /* Timer tick */
+void		int_08_handler();   /* Timer tick */
 void		int_7F_handler();	/* yield syscall */
 void		int_80_handler();
 void		new_int_80_handler();
-void 		int_09_handler();
-void		int_74_handler();
+void 		int_09_handler();   /* Keyboard */
+void		int_74_handler();   /* Mouse */
+void		int_00_handler();   /* Zero division */
+void		int_04_handler();   /* Overflow */
+void		int_06_handler();	/* Invalid opcode */
+void		int_0C_handler();	/* Invalid StackSegment*/
+void		int_0D_handler();	/* General Protection fault*/
+
 
 int _read_cr0();
 int  _read_cr3();
