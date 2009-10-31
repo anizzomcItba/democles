@@ -48,7 +48,7 @@ void foo(int argc, char *argv[]){
 	while(1){
 		for(i = 0 ; i < 160 ; i++){
 			video[i] = j++;
-			sleep(1000);
+			sleep(100);
 		}
 	}
 }
@@ -75,6 +75,11 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	setup_IDT_entry (&idt[0x74], 0x08, (dword)&int_74_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x7F], 0x08, (dword)&int_7F_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x80], 0x08, (dword)&int_80_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x00], 0x08, (dword)&int_00_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x04], 0x08, (dword)&int_04_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x06], 0x08, (dword)&int_06_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x0C], 0x08, (dword)&int_0C_handler, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x0D], 0x08, (dword)&int_0D_handler, ACS_INT, 0);
 
 	/* Carga de IDTR    */
 

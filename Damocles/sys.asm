@@ -4,6 +4,11 @@ GLOBAL int_80_handler
 GLOBAL int_08_handler
 GLOBAL int_09_handler
 GLOBAL int_74_handler
+GLOBAL int_00_handler
+GLOBAL int_04_handler
+GLOBAL int_0C_handler
+GLOBAL int_06_handler
+GLOBAL int_0D_handler
 GLOBAL yield
 GLOBAL mascaraPIC1
 GLOBAL mascaraPIC2
@@ -33,8 +38,12 @@ EXTERN getTemporalSchedStack
 EXTERN getTemporalFaultStack
 EXTERN breakpoint
 EXTERN pageFault
-
-
+EXTERN zeroDiv
+EXTERN exception
+EXTERN over_ex
+EXTERN inv_op
+EXTERN inv_ss
+EXTERN gp_fault
 
 SECTION .text
 
@@ -236,6 +245,54 @@ int_0E_handler:
 	; Esta función no retorna nunca más.
 
 	iret
+
+;Zero Division Exception
+int_00_handler:
+
+	call getTemporalFaultStack
+	mov esp, eax
+
+	call zeroDiv
+
+	iret
+
+;Overflow Exception
+int_04_handler:
+	call getTemporalFaultStack
+	mov esp, eax
+
+	call over_ex
+
+	iret
+
+;Invalid opcode Exception
+int_06_handler:
+	call getTemporalFaultStack
+	mov esp, eax
+
+	call inv_op
+
+	iret
+
+
+;Invalid StackSegment Exception
+int_0C_handler:
+	call getTemporalFaultStack
+	mov esp, eax
+
+	call inv_ss
+
+	iret
+
+;General Protection Fault
+int_0D_handler:
+	call getTemporalFaultStack
+	mov esp, eax
+
+	call gp_fault
+
+	iret
+
 
 halt:
 	hlt
