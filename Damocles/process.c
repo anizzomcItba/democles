@@ -31,6 +31,7 @@ typedef struct {
 	int fds[MAX_OPENFILES];
 	int retval; //El valor de retorno
 	int readyToRemove;
+	int tag;
 } process_descriptor_t;
 
 #pragma pack (1)
@@ -57,6 +58,15 @@ static byte *buildStack(byte *stack, process_t p, int argc, char **argv);
 static int getFreeSlot();
 static void freeProcessMemory(int pid);
 static void deallocProcess(int pid);
+
+
+static void untagAll();
+static int tagChildren(int pid, int depth);
+static void tagDescendants(int pid);
+static void removeTagged();
+
+
+
 
 int idle(int argc, char **argv);
 
@@ -127,6 +137,22 @@ static byte *buildStack(byte *stack, process_t p, int argc, char **argv){
 
 }
 
+
+/* Retorna la cantidad de hijos que tiene el proceso indicado por su
+ * pid
+ */
+
+int procGetChildCant(int pid){
+	int i, j;
+
+	for(i = j = 0; i < MAX_PROCESS ;i++){
+		if(proc[i].ppid == pid)
+			j++;
+	}
+	return j;
+}
+
+
 /* Le dice al scheduler que desabilite la memoria en la proxima ejecución y ya
  * lo marca listo para remover */
 
@@ -139,12 +165,27 @@ int procKill(int pid){
 	if(proc[pid%MAX_PROCESS].pid != pid)
 		return 0;
 
-	schedRemove(pid);
-	proc[pid%MAX_PROCESS].readyToRemove = 1;
-	proc[pid%MAX_PROCESS].status = DEAD;
-	//TODO hacer recursividad a los hijos
+	untagAll();
+	tagDescendants(pid);
+
+	removeTagged();
 	return 1;
 }
+
+
+
+static void removeTagged(){
+	int i;
+	for(i = 0 ; i < MAX_PROCESS ; i++){
+		if(proc[i].tag != 0){
+			schedRemove(proc[i].pid);
+			proc[i].readyToRemove = 1;
+			proc[i].status = DEAD;
+		}
+
+	}
+}
+
 
 void procEnd(int retval){
 	int pid = schedCurrentProcess();
@@ -360,4 +401,40 @@ static void procWrapper(process_t p, int argc, char **argv){
 	yield();
 }
 
+static void tagDescendants(int pid){
+	int tagged = 1;
+	int depth = 1;
+
+	proc[pid%MAX_PROCESS].tag = 1;
+
+	while(tagged){
+		int i;
+		tagged = 0;
+
+		for (i = 0 ; i < MAX_PROCESS ; i++){
+			if(proc[i].tag == depth)
+				tagged += tagChildren(proc[i].pid, depth+1);
+		}
+		depth++;
+	}
+}
+
+
+static void untagAll(){
+	int i;
+	for (i = 0 ; i < MAX_PROCESS ; i++)
+		proc[i].tag = 0;
+	return;
+}
+
+static int tagChildren(int pid, int depth){
+	int i, j;
+	for(i  = j = 0; i < MAX_PROCESS ; i++){
+		if(proc[i].ppid == pid){
+			proc[i].tag = depth;
+			j++;
+		}
+	}
+	return j;
+}
 

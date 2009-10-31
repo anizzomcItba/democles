@@ -11,6 +11,7 @@
 
 #define SYS_SLEEP 10
 #define SYS_EXIT 11
+#define SYS_GETPID 12
 
 #define SYS_SET_CURSOR 25
 #define SYS_GET_CURSOR 26
@@ -34,8 +35,14 @@ void clearScreenCall();
 /* Scheduler Syscalls */
 
 void sleep(int milliseconds);
-void exit(int status);
 
+
+
+
+/* Process Syscalls */
+
+int getpid();
+void exit(int status);
 
 
 dword syscall(dword sysnum, dword arg1, dword arg2, dword arg3,dword arg4,
