@@ -38,6 +38,12 @@ void sleep(int miliseconds){
 	syscall(SYS_SLEEP,(dword) miliseconds,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
 }
 
+
+
 void exit(int status){
 	syscall(SYS_EXIT, (dword)status,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
+}
+
+int getpid(){
+	return syscall(SYS_GETPID, (dword)NULL,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
 }

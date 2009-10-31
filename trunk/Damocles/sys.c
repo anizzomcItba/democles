@@ -14,13 +14,14 @@ void *sysfsetCursor(void **args);
 void *sysfclearScreen(void **args);
 void *sysfSleep(void **args);
 void *sysfExit(void **args);
+void *sysfgetPid(void **args);
 
 typedef void *(*sysfT)(void **);
 
 sysfT syscalls[] = {
 		sysfRead, sysfWrite, sysfFlush, NULL, NULL, /* 0 - 4 */
 		NULL, NULL, NULL, NULL, NULL, /*  5- 9 */
-		sysfSleep, sysfExit, NULL, NULL, NULL, /* 10 - 14 */
+		sysfSleep, sysfExit, sysfgetPid, NULL, NULL, /* 10 - 14 */
 		NULL, NULL, NULL, NULL, NULL, /* 15 - 19 */
 		NULL, NULL, NULL, NULL, NULL, /* 20 - 24 */
 		sysfsetCursor, sysfgetCursor, sysfclearScreen, NULL, NULL /* 25 - 29 */
@@ -79,9 +80,16 @@ void *sysfSleep(void **args){
 	return NULL;
 }
 
+
+void *sysfgetPid(void **args){
+	return (void *)schedCurrentProcess();
+}
+
 void *_dispatcher(int callnum, void **args){
 	return syscalls[callnum](args);
 }
+
+
 
 
 
