@@ -30,6 +30,6 @@ int _vpagesqty();
 void _vresetpage(int p);
 void _vpaint(coord_t begin, coord_t end);
 void _vscroll(int page);
-void _vpanic(char* line, int lines);
+void _vuprint(char* line, int lines);
 
  #endif

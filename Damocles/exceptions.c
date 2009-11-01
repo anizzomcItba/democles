@@ -27,7 +27,7 @@ void over_ex(){
 
 void inv_op(){
 	int pid = schedCurrentProcess();
-	printf("Process %d caused Overflow Exception\n", pid);
+	printf("Process %d tried to invoque an invalid operand\n", pid);
 	procKill(pid);
 	yield();
 }

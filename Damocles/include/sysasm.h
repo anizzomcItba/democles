@@ -35,6 +35,8 @@ void		int_04_handler();   /* Overflow */
 void		int_06_handler();	/* Invalid opcode */
 void		int_0C_handler();	/* Invalid StackSegment*/
 void		int_0D_handler();	/* General Protection fault*/
+void 		_opDie();
+void 		_overDie();
 
 
 int _read_cr0();

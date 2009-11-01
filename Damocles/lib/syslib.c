@@ -21,7 +21,7 @@ void restoreInts(int iflag) {
 	return;
 }
 
-void kernelPanic(const char* format, ...) {
+void uprintf(const char* format, ...) {
 	char **arg = (char **) &format;
 	int c, l_pos = 0, lines = 1, j;
 	char buf[20] = { '\0' }, line[81] = { '\0' };
@@ -33,7 +33,7 @@ void kernelPanic(const char* format, ...) {
 			switch (c) {
 			case '\n':
 				line[l_pos]='\0';
-				_vpanic(line, lines);
+				_vuprint(line, lines);
 				l_pos = 0;
 				lines++;
 				break;
@@ -45,7 +45,7 @@ void kernelPanic(const char* format, ...) {
 					line[l_pos++] = ' ';
 					if (l_pos == 80) {
 						line[l_pos]='\0';
-						_vpanic(line, ++lines);
+						_vuprint(line, ++lines);
 						l_pos = 0;
 					}
 				}
@@ -77,7 +77,7 @@ void kernelPanic(const char* format, ...) {
 					line[l_pos++] = *p++;
 					if (l_pos == 80) {
 						line[l_pos]='\0';
-						_vpanic(line, lines++);
+						_vuprint(line, lines++);
 						l_pos = 0;
 					}
 				}
@@ -90,12 +90,12 @@ void kernelPanic(const char* format, ...) {
 		}
 		if (l_pos == 80) {
 			line[l_pos]='\0';
-			_vpanic(line, lines++);
+			_vuprint(line, lines++);
 			l_pos = 0;
 		}
 	}
 	line[l_pos]='\0';
-	_vpanic(line, lines++);
+	_vuprint(line, lines++);
 	l_pos = 0;
 }
 

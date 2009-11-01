@@ -387,7 +387,7 @@ void _vpaint(coord_t begin, coord_t end) {
 					* VIDEO_COLS * 2 + xorg * 2 + 1]);
 }
 
-void _vpanic(char* line, int lines) {
+void _vuprint(char* line, int lines) {
 	lineScroll(lines);
 	int i;
 	char *ini_pos = (char*) (video + (VIDEO_ROWS - 1) * VIDEO_COLS * 2);
