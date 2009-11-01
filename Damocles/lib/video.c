@@ -96,13 +96,13 @@ void setCursor(char x, char y)
 char getXc()
 {
 	coord_t t;
-	getCursorCall(&t); //TODO: Pasar por syscall
+	getCursorCall(&t);
 	return t.x;
 }
 char getYc(){
 	coord_t t;
 	getCursorCall(&t);
-	return t.y; //TODO: Pasar por syscall
+	return t.y;
 }
 
 void disablePen(){
@@ -196,11 +196,6 @@ void writeToCursor(char *str, char moveCursor)
  */
 void putToCursor(char c){
 	write(CURSOR, &c, 1);
-}
-
-
-void scroll(){
-	 _vscroll(0); //TODO: Pasar por syscall
 }
 
 void updateMouseCursor(MOUSE_DATA * mData)

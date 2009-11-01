@@ -147,7 +147,7 @@ keyboardRoutine( unsigned char scanCode )
 		input = getArrow(scanCode);
 
 		/* Coloca la tecla en el buffer de teclado IO.c */
-		bufferAdd(IN_0 + ttyGetActive(), input); //TODO
+		bufferAdd(IN_0 + ttyGetActive(), input);
 
 		return;
 	}
@@ -188,7 +188,7 @@ keyboardRoutine( unsigned char scanCode )
 			buffer_index = START_POS;
 
 	/* Coloca la tecla en el buffer de teclado IO.c */
-	bufferAdd(IN_0 + ttyGetActive(), input); //TODO:
+	bufferAdd(IN_0 + ttyGetActive(), input);
 
 	return;
 

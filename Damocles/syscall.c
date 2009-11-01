@@ -2,6 +2,8 @@
 #include "include/syscall.h"
 #include "include/sysasm.h"
 #include "drivers/video/crtc6845.h"
+#include "include/process.h"
+#include "include/sched.h"
 
 
 /* System calls de Archivos */
@@ -33,17 +35,38 @@ void clearScreenCall(){
 	syscall(SYS_CLEARSCREEN, (dword)NULL,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
 }
 
-/* System call de procesos */
+/* System de Scheduler */
 void sleep(int miliseconds){
 	syscall(SYS_SLEEP,(dword) miliseconds,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
 }
 
-
+/* Sycall de procesos */
 
 void exit(int status){
 	syscall(SYS_EXIT, (dword)status,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
 }
 
+int kill(int pid){
+	return syscall(SYS_KILL, (dword)pid, (dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
+}
+
+int waitpid(int pid, exitStatus_t *status, int *retval, int option){
+	return syscall(SYS_WAITPID, (dword)pid, (dword) status,(dword) retval,(dword) option,(dword) NULL);
+}
+
+int getppid(){
+	return syscall(SYS_GETPPID, (dword)NULL,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
+}
+
 int getpid(){
 	return syscall(SYS_GETPID, (dword)NULL,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
 }
+
+int running_process(){
+	return syscall(SYS_RUNNING, (dword)NULL,(dword) NULL,(dword) NULL,(dword) NULL,(dword) NULL);
+}
+
+int running_statics(schedProcData_t data[], int max){
+	return syscall(SYS_STATICS, (dword) data, (dword) max, (dword) NULL,(dword) NULL,(dword) NULL);
+}
+

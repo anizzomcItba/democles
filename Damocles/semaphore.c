@@ -6,8 +6,7 @@
 #include "include/syslib.h"
 
 #define MAX_PIDS 10
-#define MAX_SEMAPHORES 30
-
+#define MAX_SEMAPHORES 70
 typedef struct {
 	int value;
 	int pids[MAX_PIDS]; /* array de pids a levantar cuando el semaforo esté > 0 */
@@ -52,6 +51,12 @@ int semGetID(int value){
 	/* Restauro las interrupciones */
 	restoreInts(f);
 	return -1;
+}
+
+void semConsume(int id){
+	if(sems[id].value > 0)
+		sems[id].value--;
+	return;
 }
 
 int semDec(int id){

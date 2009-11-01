@@ -39,23 +39,6 @@ static void *temporalFaultStack;
 void top(int argc, char **argv);
 void debug();
 
-void foo(int argc, char *argv[]){
-	char *video =(char*) 0xB8000;
-	int i = 0, j = 0;
-
-	printf("La cantidad de Args es: %d\n", argc);
-	for (i = 0 ; i < argc; i++)
-		printf("%s\n", argv[i]);
-
-	while(1){
-		for(i = 0 ; i < 160 ; i++){
-			video[i] = j++;
-			sleep(10);
-		}
-//		uprintf("lalala \n %d\n %s", 4, "Hola mundo!");
-	}
-}
-
 
 /**********************************************
 KERNEL
@@ -159,20 +142,21 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	procCreate("Top", (process_t)top, (void *)getPage(), NULL, fds, 3, 0, NULL, 2, 0, 0);
 
-
-	procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
-
-	debug();
-	_sti();
-
 	//setCursor(0, 0);
 
+
+	int pid;
+	exitStatus_t status;
+	int retval;
 
 	while(1){
 		_cli();
 		schedResetStatics();
 		_sti();
 		sleep(5000);
+
+		if ((pid = procWaitPid(-1, &status, &retval, O_NOWAIT)) != -1)
+			printf("The process %d has ended %s with exit code: %d", pid, (status == KILLED)? "KILLED": "NORMALY", retval);
 	}
 
 	kprint("System Halted");
