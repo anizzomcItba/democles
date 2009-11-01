@@ -5,6 +5,7 @@
 
 #define WHITE_TXT 0x07
 #define INV 0x70
+#define TAB_SPACE 5
 
 
 void _vtflush(int page, void *buff, size_t qty);
@@ -29,6 +30,6 @@ int _vpagesqty();
 void _vresetpage(int p);
 void _vpaint(coord_t begin, coord_t end);
 void _vscroll(int page);
-
+void _vpanic(char* line, int lines);
 
  #endif
