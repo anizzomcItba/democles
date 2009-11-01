@@ -1,6 +1,5 @@
 
-#include "../include/sched.h" //XXX: Syscall!
-#include "../include/process.h" //XXX: Syscall
+
 #include "../include/stdio.h"
 #include "../include/video.h"
 #include "../include/syscall.h"
@@ -26,30 +25,32 @@ int top(int argc, char **argv){
 //
 
 	while(1){
-		_cli();
-		currentProcess = schedCantProcess();
-		running = schedGetInfo(data, 10);
-		_sti();
+
+		currentProcess = running_process();
+		running = running_statics(data, 10);
+
+		totalticks = getTotal(data, running);
+		if(totalticks > 10){
 
 		clearScreen();
 		setCursor(0, 0);
 		kprintf("Cantidad de procesos: %d\n", currentProcess);
 		kprintf("PID\t\tNombre\t\tUso\t\tPriority\t\tStatus\n");
 
-		totalticks = getTotal(data, running);
 
 		order(data, running);
 
-		for (i = 0 ; i < running ; i++){
-			kprintf("%d", data[i].pid);
-			setCursor(13, 2+i);
-			kprintf("%s", data[i].name);
-			setCursor(29, 2+i);
-			kprintf("%d", (100*data[i].ticks)/totalticks);
-			setCursor(44, 2+i);
-			kprintf("%d", data[i].priority);
-			setCursor(62, 2+i);
-			kprintf("%s\n", statusString(data[i].status));
+			for (i = 0 ; i < running ; i++){
+				kprintf("%d", data[i].pid);
+				setCursor(13, 2+i);
+				kprintf("%s", data[i].name);
+				setCursor(29, 2+i);
+				kprintf("%d", (100*data[i].ticks)/totalticks);
+				setCursor(44, 2+i);
+				kprintf("%d", data[i].priority);
+				setCursor(62, 2+i);
+				kprintf("%s\n", statusString(data[i].status));
+			}
 		}
 		sleep(2000);
 	}

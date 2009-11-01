@@ -15,17 +15,46 @@ void *sysfclearScreen(void **args);
 void *sysfSleep(void **args);
 void *sysfExit(void **args);
 void *sysfgetPid(void **args);
+void *sysfgetPpid(void **args);
+void *sysfKill(void **args);
+void *sysfwaitpid(void **args);
+void *sysfrunning(void **args);
+void *sysfstatics(void **args);
 
 typedef void *(*sysfT)(void **);
 
 sysfT syscalls[] = {
 		sysfRead, sysfWrite, sysfFlush, NULL, NULL, /* 0 - 4 */
-		NULL, NULL, NULL, NULL, NULL, /*  5- 9 */
-		sysfSleep, sysfExit, sysfgetPid, NULL, NULL, /* 10 - 14 */
-		NULL, NULL, NULL, NULL, NULL, /* 15 - 19 */
+		NULL, NULL, NULL, sysfstatics, sysfrunning, /*  5- 9 */
+		sysfSleep, sysfExit, sysfgetPid, sysfKill, sysfwaitpid, /* 10 - 14 */
+		sysfgetPpid, NULL, NULL, NULL, NULL, /* 15 - 19 */
 		NULL, NULL, NULL, NULL, NULL, /* 20 - 24 */
 		sysfsetCursor, sysfgetCursor, sysfclearScreen, NULL, NULL /* 25 - 29 */
 };
+
+
+void *sysfstatics(void **args){
+	int f = disableInts();
+	void *ret = (void *) schedGetInfo((schedProcData_t *) args[0], (int) args[1]);
+	restoreInts(f);
+	return ret;
+}
+
+void *sysfwaitpid(void **args){
+	int f = disableInts();
+	void *ret;
+	ret = (void *)procWaitPid((int) args[0], (exitStatus_t*) args[1], (int*) args[2], (int) args[3]);
+	restoreInts(f);
+	return ret;
+}
+
+void *sysfKill(void **args){
+	int f = disableInts();
+	void *ret;
+	ret = (void *)procKill((int) args[0]);
+	restoreInts(f);
+	return ret;
+}
 
 void *sysfgetCursor(void **args){
 	sysgetCursor(args[0]);
@@ -73,12 +102,17 @@ void *sysfSleep(void **args){
 	 * un proceso como WAITING puede llegar a errores que marcan el tiempo de
 	 * espera como negativo.
 	 */
-	_cli();
+	int f = disableInts();
 	schedSleep((int) args[0]);
-	_sti();
+	restoreInts(f);
 	yield();
 	return NULL;
 }
+
+void *sysfgetPpid(void **args){
+	return (void* ) procGetPpid(schedCurrentProcess());
+}
+
 
 
 void *sysfgetPid(void **args){
@@ -90,7 +124,12 @@ void *_dispatcher(int callnum, void **args){
 }
 
 
-
+void *sysfrunning(void **args){
+	int f = disableInts();
+	void *ret =(void *) schedCantProcess();
+	restoreInts(f);
+	return ret;
+}
 
 
 

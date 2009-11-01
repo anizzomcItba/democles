@@ -22,7 +22,7 @@ gcc -Wall -g -m32 -c syscall.c -o syscall.o -fno-builtin
 gcc -Wall -g -m32 -c ttys.c -o ttys.o -fno-builtin
 gcc -Wall -g -m32 -c process.c -o process.o -fno-builtin
 gcc -Wall -g -m32 -c semaphore.c -o semaphore.o -fno-builtin
-gcc -Wall -g -m32 -c lib/syslib.c -o syslib.o -fno-builtin
+gcc -Wall -g -m32 -c lib/syslib.c -o syslib.o -fno-builtin -fno-stack-protector
 gcc -Wall -g -m32 -c debug.c -o debug.o -fno-builtin
 gcc -Wall -g -m32 -c process/top.c -o top.o -fno-builtin -fno-stack-protector
 gcc -Wall -g -m32 -c exceptions.c -o exceptions.o -fno-builtin

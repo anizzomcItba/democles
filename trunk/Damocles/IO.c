@@ -7,6 +7,7 @@
 #include "include/io.h"
 #include "include/sysasm.h"
 #include "include/semaphore.h"
+#include "include/syscall.h"
 
 
 /*
@@ -162,9 +163,8 @@ void sysread(int fd, char *buffOut, size_t qty){
 
 	int globalfd = procGetFD(fd);
 
-	//XXX Esto sigue aca?
-	if(fd > MAX_FDS || !fdTable[globalfd].init){
-		//This should kill the caller
+	if(globalfd == -1){
+		kill(schedCurrentProcess());
 		return;
 	}
 

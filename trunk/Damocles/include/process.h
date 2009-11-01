@@ -10,6 +10,13 @@
 #define MAX_PROCESS 71
 
 
+/* Opciones de WaitPid */
+#define O_NOWAIT 0x1
+
+
+typedef enum {KILLED, NORMAL} exitStatus_t;
+
+
 typedef int(*process_t)(int, char**);
 
 /* Crea un proceso */
@@ -20,13 +27,13 @@ void procSetup();
 
 void procSaveStack(byte *stackPtr);
 
-int procKill(int pid); //TODO
+int procKill(int pid);
 
 void procEnd(int retval);
 
 int procSign(int pid, int signal); //TODO
 
-int procRetVal(int pid);
+int procRetVal(int pid, exitStatus_t *status, int *retVal);
 
 void procEnableMem(int pid);
 
@@ -38,6 +45,10 @@ int procAttachedTTY(int pid);
 
 int procGetFD(int fd);
 
+int procGetPpid(int pid);
+
 dword procGetStack(int pid);
+
+int procWaitPid(int pid, exitStatus_t *status,int *retval, int option);
 
 #endif /* PROCESS_H_ */

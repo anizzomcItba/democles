@@ -3,6 +3,8 @@
 #ifndef _VIDEO_H_
 #define _VIDEO_H_
 
+#include "defs.h"
+
 /*
  * Biblioteca standard del video
  */

@@ -9,6 +9,8 @@
 #include "include/process.h"
 #include "include/stdio.h"
 #include "include/syslib.h"
+#include "include/semaphore.h"
+#include "include/syscall.h"
 
 #define MAX_HEAPPAGES 10
 #define MAX_STACKPAGES 1
@@ -32,6 +34,9 @@ typedef struct {
 	int retval; //El valor de retorno
 	int readyToRemove;
 	int tag;
+	int sem; //Semaforo en el cual señalizan los hijos que terminaron
+	int childCount;
+	exitStatus_t exitStatus; //En que estado terminó el proceso
 } process_descriptor_t;
 
 #pragma pack (1)
@@ -76,20 +81,42 @@ int procCreate(char *name, process_t p, void *stack, void *heap,
 		int fds[],int files, int argc, char **argv, int tty, int orphan, int priority){
 
 	int slot = getFreeSlot();
-//
+
+	/* Obtengo un semaforo para controlar la salida de los hijos */
+
+	proc[slot].sem = semGetID(0);
 
 	/* Obtengo un pid para el cual pid%MAX_PROCESS de el slot obtenido */
 	proc[slot].pid  = proc[slot].pid + MAX_PROCESS;
 	/* Si el proceso es huerfano, es hijo de INIT */
 	proc[slot].ppid = (orphan)? INIT_PROCESS : schedCurrentProcess();
+
+	/* Aumento en 1 la cantidad de hijos del padre */
+	proc[proc[slot].ppid%MAX_PROCESS].childCount++;
+
 	strcpy(proc[slot].name, name);
 	proc[slot].status = READY;
+
+	/* No está implementado el uso del heap, pero se podría agregar muy
+	 * sencillamente asignando el heap, y luego a travez de un syscall
+	 * se pueda retornar, además un malloc podría administrar esta memoria
+	 * y en caso de que necesite más memoria podría pedir más páginas */
+
+
 	proc[slot].heapPages[0] = heap;
 	proc[slot].usedheapPages = 0;
+
+
+	/* Este proceso no tiene hijos */
+	proc[slot].childCount = 0;
+
+
 	proc[slot].stackPages[0] = stack;
 	proc[slot].usedstackPages = 1;
 	proc[slot].attachedTTY = tty;
 	proc[slot].retval = 0;
+
+
 	memcpy(proc[slot].fds, fds, files*sizeof(int));
 
 
@@ -162,7 +189,8 @@ int procKill(int pid){
 		/* Estos procesos no se pueden matar */
 		return 0;
 
-	if(proc[pid%MAX_PROCESS].pid != pid)
+	/* El proceso no existe o no está vivo */
+	if(proc[pid%MAX_PROCESS].pid != pid || proc[pid%MAX_PROCESS].status != READY)
 		return 0;
 
 	untagAll();
@@ -173,14 +201,23 @@ int procKill(int pid){
 }
 
 
+int procGetPpid(int pid){
+	if(proc[pid%MAX_PROCESS].pid != pid || proc[pid%MAX_PROCESS].status == FREE)
+		return -1;
+	return proc[pid%MAX_PROCESS].ppid;
+}
+
 
 static void removeTagged(){
 	int i;
 	for(i = 0 ; i < MAX_PROCESS ; i++){
 		if(proc[i].tag != 0){
+			proc[i].readyToRemove = 0;
 			schedRemove(proc[i].pid);
-			proc[i].readyToRemove = 1;
-			proc[i].status = DEAD;
+			proc[i].status = ZOMBIE;
+			proc[i].exitStatus = KILLED;
+			/* Señalizo a mi padre que terminé */
+			semInc(proc[proc[i].ppid%MAX_PROCESS].sem);
 		}
 
 	}
@@ -189,17 +226,12 @@ static void removeTagged(){
 
 void procEnd(int retval){
 	int pid = schedCurrentProcess();
-	int i;
-
-
-	/* Esta operación debe ser atómica, pero los flags se van a perder
-	 * cuando se libere el proceos */
-	disableInts();
 
 
 	/* El proceso está en estado zombie hasta que alguien le pida
 	 * el retval */
 
+	proc[pid%MAX_PROCESS].exitStatus = NORMAL;
 	proc[pid%MAX_PROCESS].status = ZOMBIE;
 	proc[pid%MAX_PROCESS].retval = retval;
 
@@ -208,49 +240,84 @@ void procEnd(int retval){
 	 */
 	proc[pid%MAX_PROCESS].readyToRemove = 0;
 
+
 	/* Le informo al scheduler que no ejecute más al proceso */
 
+	/* Señalizo a mi padre que terminé */
+	semInc(proc[proc[pid%MAX_PROCESS].ppid%MAX_PROCESS].sem);
+
+
 	schedRemove(pid);
-
-	/* A todos los hijos de este proceso los hereda init */
-
-	for(i = 0 ; i < MAX_PROCESS ; i++){
-		if(proc[i].ppid == pid){
-			proc[i].ppid = INIT_PROCESS;
-		}
-	}
-
 }
 
+/* Marca el proceso como listo, pero no lo remueve si es que no estaba listo
+ * para remover, porque el scheduler tiene que desabilitar la memoria, o hay
+ * que pedirle la el valor de retorno, esto es para controlar que pasen las
+ * 2 cosas.
+ */
 void procReadyToRemove(int pid){
 
-	if(proc[pid%MAX_PROCESS].readyToRemove)
-		/* Si el procso ya estba listo para remover, lo remuevo, sinó
-		 * lo marco como listo */
+	int i;
+
+	if(proc[pid%MAX_PROCESS].readyToRemove){
+		/* Si el procso ya estba listo para remover, lo remuevo, reto la cantidad
+		 * de hijos del padre o  lo marco como listo */
+
+		proc[proc[pid%MAX_PROCESS].ppid%MAX_PROCESS].childCount--;
 		deallocProcess(pid);
-	else
+	}
+	else{
 		proc[pid%MAX_PROCESS].readyToRemove = 1;
 
+		/* A todos los hijos de este proceso los hereda init */
+		for(i = 0 ; i < MAX_PROCESS ; i++){
+			if(proc[i].ppid == pid && proc[i].status != FREE){
+				proc[i].ppid = INIT_PROCESS;
+				proc[INIT_PROCESS%MAX_PROCESS].childCount++;
+			}
+		}
 
+
+	}
 	return;
 }
 
 
+/* Manda una señal a un proceso, sin implementar */
 
 int procSign(int pid, int signal){
-	return 1;
+	return -1;
 }
 
-int procRetVal(int pid){
-	int i = proc[pid%MAX_PROCESS].retval;
-	//TODO: Acá debería hacer un dec de un sem
-	/* Si el proceso estaba listo para remover, lo libero */
-	if(proc[pid%MAX_PROCESS].readyToRemove)
-		deallocProcess(pid);
-	else
-		proc[pid%MAX_PROCESS].readyToRemove = 1;
+/* Retorna el estado del proceso pasado cómo parámetro, si ese proceso no
+ * existe, retorna -1. En otro caso, deja el estado de la salida del proceso
+ * caso que si status es KILLED, retVal no tiene sentido, una vez que ya está
+ * lo marca como listo para remover.
+ */
 
-	return i;
+int procRetVal(int pid, exitStatus_t *status, int *retVal){
+	int ret;
+
+	/* Ese proceso no existe, no está muerto, no es hijo del proceso acutal o
+	 * no está listo para pedirle el retval */
+	if(proc[pid%MAX_PROCESS].pid != pid || proc[pid%MAX_PROCESS].status != ZOMBIE ||
+			proc[pid%MAX_PROCESS].ppid != schedCurrentProcess())
+		return -1;
+
+
+	/* Asigno los valores que busca la función, preguntar por el estado de exitStatus
+	 * solo consume micro, ya que el usuario no va a usar retVal si el estado es
+	 * KILLED.
+	 */
+	*status = proc[pid%MAX_PROCESS].exitStatus;
+	*retVal = proc[pid%MAX_PROCESS].retval;
+
+	ret = proc[pid%MAX_PROCESS].pid;
+
+
+	procReadyToRemove(ret);
+
+	return ret;
 }
 
 void procEnableMem(int pid){
@@ -299,6 +366,7 @@ void procSetup(){
 
 
 	strcpy(proc[INIT_PROCESS].name, "init");
+	proc[INIT_PROCESS].sem = semGetID(0);
 	proc[INIT_PROCESS].pid = INIT_PROCESS;
 	proc[INIT_PROCESS].ppid = INIT_PROCESS;
 	proc[INIT_PROCESS].status = RUNNING;
@@ -306,6 +374,7 @@ void procSetup(){
 	proc[INIT_PROCESS].fds[STDIN] = IN_0;
 	proc[INIT_PROCESS].fds[STDOUT] = TTY_0;
 	proc[INIT_PROCESS].fds[CURSOR] = TTY_CURSOR_0;
+	proc[INIT_PROCESS].childCount = 0;
 
 
 	int fds[3];
@@ -314,23 +383,6 @@ void procSetup(){
 	fds[CURSOR] = TTY_CURSOR_0;
 
 
-
-/*
-
-	strcpy(proc[IDLE_PROCCES].name, "idle");
-	proc[IDLE_PROCCES].pid = IDLE_PROCCES;
-	proc[IDLE_PROCCES].ppid = IDLE_PROCCES;
-	proc[IDLE_PROCCES].status = READY;
-	proc[IDLE_PROCCES].attachedTTY = 0;
-	proc[IDLE_PROCCES].stackPages[0] = (byte *)idle_stack;
-	proc[IDLE_PROCCES].usedstackPages = 1;
-	proc[IDLE_PROCCES].usedheapPages = 0;
-	proc[IDLE_PROCCES].fds[STDIN] = IN_0;
-	proc[IDLE_PROCCES].fds[STDOUT] = TTY_0;
-	proc[IDLE_PROCCES].fds[CURSOR] = TTY_CURSOR_0;
-	proc[IDLE_PROCCES].ESP =(byte*) buildStack((byte*)idle_stack, (process_t)idle, 0, NULL);
-
-*/
 	schedSetUpInit(INIT_PROCESS, "init", 0);
 	schedSetUpIdle(procCreate("idle", (process_t)idle, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0));
 
@@ -388,18 +440,27 @@ static void freeProcessMemory(int pid){
 }
 
 static void deallocProcess(int pid){
-
+	semRetID(proc[pid%MAX_PROCESS].sem);
 	freeProcessMemory(pid);
 	proc[pid%MAX_PROCESS].status = FREE;
 }
 
 static void procWrapper(process_t p, int argc, char **argv){
-	procEnd(p(argc, argv));
+	exit(p(argc, argv));
 	/* El scheduler va a ser el encargado de avisarle a proc que puede
 	 * remover el proceso
 	 */
 	yield();
 }
+
+/* Función que marca la descendencia de todos los procesos de
+ * pid, él inclusive. El uso de esta función está para no
+ * realizar recursividad en en el kernel, si se usara recursividad
+ * además de apilar en el stack la cantidad de llamadas a función
+ * habría que recorrer al menos 1 vez el array de procesos por cada
+ * proceso encontrado. Este algoritmo realiza la misma cantidad de
+ * recorridos, así que es más eficiente que un algoritmo recursivo.
+ */
 
 static void tagDescendants(int pid){
 	int tagged = 1;
@@ -419,6 +480,7 @@ static void tagDescendants(int pid){
 	}
 }
 
+/* Remueve las etiquetas asignadas a todos los procesos */
 
 static void untagAll(){
 	int i;
@@ -426,6 +488,10 @@ static void untagAll(){
 		proc[i].tag = 0;
 	return;
 }
+
+/* Taggea a todos los hijos del proceso dado con la etiqueta pasada como
+ * parámetro
+ */
 
 static int tagChildren(int pid, int depth){
 	int i, j;
@@ -437,4 +503,63 @@ static int tagChildren(int pid, int depth){
 	}
 	return j;
 }
+
+int procWaitPid(int pid, exitStatus_t *status, int *retval, int option){
+
+	int i;
+	int slot = -1;
+	int ppid = schedCurrentProcess();
+	int rta;
+
+	if(pid == 0 || pid == 1){
+		/* No se le pid el ret val a init o a idle */
+		return -1;
+	}
+
+
+	/* El proceso no tiene hijos! */
+	if(proc[ppid%MAX_PROCESS].childCount == 0)
+		return -1;
+
+
+	if(pid >= 2){
+		slot = pid%MAX_PROCESS;
+		if(proc[slot].pid != pid || proc[slot].status == FREE || proc[slot].ppid != ppid){
+			/* El proceso no existe o no es hijo de este proceso */
+			return -1;
+		}
+	}
+
+	/* Si tengo que esperar, duermo sobre mi semaforo, mis hijos
+	 * me señalizan acá
+	 */
+	if(!(option & O_NOWAIT))
+		semDec(proc[ppid%MAX_PROCESS].sem);
+	//else
+	//	semConsume(proc[ppid%MAX_PROCESS].sem);
+
+	/* Si estoy acá es que no elegí el slot del proceso */
+	if(slot == -1){
+		for (i = 0 ; i < MAX_PROCESS ; i++){
+			if(proc[i].ppid == ppid && proc[i].status == ZOMBIE){
+				slot = i;
+				break;
+			}
+		}
+	}
+	if (slot == -1){
+		/* No encontré ningun proceso para pedirle el retval! esto es
+		 * un error de programación!
+		 */
+		return -1;
+	}
+
+	/* Si llegé acá y la opción era O_NOWAIT hubo un signal que no consumi */
+	if((rta = procRetVal(proc[slot].pid, status, retval)) != 1 && (option & O_NOWAIT))
+		semConsume(proc[ppid%MAX_PROCESS].sem);
+
+	return rta;
+
+}
+
 
