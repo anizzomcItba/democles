@@ -387,6 +387,10 @@ void _vpaint(coord_t begin, coord_t end) {
 					* VIDEO_COLS * 2 + xorg * 2 + 1]);
 }
 
+/*
+ * scrollea lines líneas para arriba e imprime lo apuntado por line
+ * en la última línea. Para usar excelusivamente con uprintf.
+ */
 void _vuprint(char* line, int lines) {
 	lineScroll(lines);
 	int i;
