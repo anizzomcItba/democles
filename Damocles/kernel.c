@@ -20,6 +20,7 @@
 #include "include/process.h"
 #include "include/semaphore.h"
 #include "drivers/video/crtc6845.h"
+#include "include/syslib.h"
 
 void testText(void);
 
@@ -48,8 +49,9 @@ void foo(int argc, char *argv[]){
 	while(1){
 		for(i = 0 ; i < 160 ; i++){
 			video[i] = j++;
-			sleep(100);
+			sleep(10);
 		}
+		kernelPanic("lalala \n %d\n %s", 4, "Hola mundo!");
 	}
 }
 
