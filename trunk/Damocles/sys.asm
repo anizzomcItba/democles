@@ -295,12 +295,12 @@ int_0D_handler:
 
 	iret
 
-
+;invalid opcode exception generator
 _opDie:
 	jmp int_0D_handler + 2h
 	ret
 
-
+;overflow exception generator
 _overDie:
 	into
 	ret

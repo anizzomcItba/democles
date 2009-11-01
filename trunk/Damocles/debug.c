@@ -54,6 +54,8 @@ int foobar(int argc, char **argv){
 void zeroDie(){
 	int i, a;
 
+	printf("Pid del proceso para crear zero division exception: %d!\n", schedCurrentProcess());
+
 	for(i=0; ;i++){
 		a=20/(60-i);
 		sleep(100);
@@ -61,9 +63,10 @@ void zeroDie(){
 }
 
 void overDie(){
+
 	unsigned int a=0xFFFFFFF0, i;
 
-	printf("Je suis %d!", schedCurrentProcess());
+	printf("Pid del proceso para crear overflow exception: %d!\n", schedCurrentProcess());
 
 	for (i=0; ; i++){
 		a += i;
@@ -72,7 +75,7 @@ void overDie(){
 }
 
 void opDie(){
-	printf("Yo soy %d!", schedCurrentProcess());
+	printf("Pid del proceso para crear invalid opcode exception %d!", schedCurrentProcess());
 	sleep(100);
 	_opDie();
 }
