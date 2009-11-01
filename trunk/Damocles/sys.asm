@@ -9,6 +9,8 @@ GLOBAL int_04_handler
 GLOBAL int_0C_handler
 GLOBAL int_06_handler
 GLOBAL int_0D_handler
+GLOBAL _opDie
+GLOBAL _overDie
 GLOBAL yield
 GLOBAL mascaraPIC1
 GLOBAL mascaraPIC2
@@ -294,6 +296,15 @@ int_0D_handler:
 	iret
 
 
+_opDie:
+	jmp int_0D_handler + 2h
+	ret
+
+
+_overDie:
+	into
+	ret
+
 halt:
 	hlt
 	ret
@@ -369,4 +380,7 @@ sFlags:
 	pop ebp
 	ret
 
+SECTION .data
+
+lala 	DB "lalala", 0
 

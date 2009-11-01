@@ -37,6 +37,7 @@ static void *temporalSchedStack;
 static void *temporalFaultStack;
 
 void top(int argc, char **argv);
+void debug();
 
 void foo(int argc, char *argv[]){
 	char *video =(char*) 0xB8000;
@@ -51,7 +52,7 @@ void foo(int argc, char *argv[]){
 			video[i] = j++;
 			sleep(10);
 		}
-		kernelPanic("lalala \n %d\n %s", 4, "Hola mundo!");
+//		uprintf("lalala \n %d\n %s", 4, "Hola mundo!");
 	}
 }
 
@@ -161,7 +162,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 	procCreate("foo",(process_t) foo, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
 
-
+	debug();
 	_sti();
 
 	//setCursor(0, 0);

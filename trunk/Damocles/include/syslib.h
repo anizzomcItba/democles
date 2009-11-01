@@ -24,6 +24,6 @@ void restoreInts(int iflag);
 /* Imprime mensajes en pantalla sin pasar por el número de página.
  * Escribe a partir de la última línea y no altera la posición del cursor.
  */
-void kernelPanic(const char* format, ...);
+void uprintf(const char* format, ...);
 
 #endif /* SYSLIB_H_ */
