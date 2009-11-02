@@ -148,7 +148,17 @@ void selectScreen(char xi, char yi, char xe, char ye){
 }
 
 void copyScreen(char xi, char yi, char xe, char ye){
-	//_vcopy(xi,yi,xe,ye);
+	coord_t start, end;
+	int newSize, area;
+	void * buffer;
+	start.x=xi;
+	start.y=yi;
+	end.x=xe;
+	end.y=ye;
+	area = (xe-xi+1)*(ye-yi+1)+2*(ye-yi);
+	buffer = getClipBuffer();
+	newSize = _vcopy(buffer, start, end, area);
+	setDataSize(newSize);
 }
 
 /**
@@ -261,7 +271,7 @@ void updateMouseCursor(MOUSE_DATA * mData)
 
 
 	if ( mData->rightClick )
-		clipboardPaste(STDIN);
+		clipboardPaste();
 
 
 	/*kprintf("x %d, y %d\n",x, y);*/

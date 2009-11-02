@@ -97,6 +97,11 @@ static void outCursorCoords(coord_t coord) {
 	_out(0x3D4, 0x0E);
 	_out(0x3D5, (res >> 8) & 0xFF);
 }
+/* Recive un buffer donde va a cambiar el contenido de la pantalla
+ * entre las coordenas begin y end con un máximo de max caracteres.
+ * las lineas las va a terminar con un \n.
+ * Retorna la cantidad de caracteres copiados.
+ */
 
 int _vcopy(void *buff, coord_t begin, coord_t end, int max) {
 

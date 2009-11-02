@@ -6,7 +6,7 @@
  * filedescriptor correspondiente.
  * Ejemplo: STDIN, para simular la entrada de teclado.
  */
-void clipboardPaste(int fd);
+void clipboardPaste(void);
 
 /*
  * Informa cual es la longitud de datos que se encuentran en el
@@ -15,14 +15,11 @@ void clipboardPaste(int fd);
 int clipboardData();
 
 /*
- * Escribe en el buffer pasado como parámetro, el contenido del
- * portapapeles a partir de un offset hasta un limite.
+ * Devuelve el puntero al clipBuffer
  */
-void clipboardRead(int offset, int limit, void *bufferOut);
+void * getClipBuffer();
 
 /*
- * Retorna el puntero a la función de atención a la copia de información
- * en el clipboard. Recibe como parámetro la cantidad de datos que estan
- * en el.
+ * Setea el tama�o del contenido del buffer del clipboard
  */
-void(*_cgetcflush())(size_t);
+void setDataSize(int size);
