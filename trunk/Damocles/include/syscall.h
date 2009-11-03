@@ -54,7 +54,35 @@ int running_statics(schedProcData_t data[], int max);
 int getpid();
 int getppid();
 void exit(int status);
+
+
+
 int kill(int pid);
+
+
+/* ----------------------------------------------------------------------------
+ * waitpid
+ * ----------------------------------------------------------------------------
+ *  Espera la terminación de un proceso hijo,
+ * en su nombre retorna el pid del proceso terminado, setea
+ * en valor de status a cómo haya terminado el proceso, si NORMAL o KILLED
+ * y en el caso de que status sea KILLED no tiene sentido el valor de retval.
+ *
+ * Si pid > 0, espera la terminación del proceso que tenga ese pid.
+ * Si pid < 0 espera la terminación de cualquier hijo
+ *
+ * Errores:
+ *  -En caso de error, la función retorna -1, y los datos pasados como parámetro
+ *  no tienen sentido.
+ *
+ *  Si el proceso no existe, o no es hijo del procesos que llama, retorna error.
+ *
+ * Opciones:
+ *
+ *  O_NOWAIT : No se bloquea en la llamada y en caso de que el proceso no haya
+ *  terminado retorna -1.
+ *
+ */
 int waitpid(int pid, exitStatus_t *status, int *retval, int option);
 
 
