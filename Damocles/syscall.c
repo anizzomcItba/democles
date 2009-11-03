@@ -70,3 +70,6 @@ int running_statics(schedProcData_t data[], int max){
 	return syscall(SYS_STATICS, (dword) data, (dword) max, (dword) NULL,(dword) NULL,(dword) NULL);
 }
 
+//processApi_t getcontext(char *name, process_t p, int pririty){
+//	return (processApi_t) syscall(SYS_CONTEXT, (dword) name, (dword) p, u(dword) priority,(dword) NULL,(dword) NULL);
+//}

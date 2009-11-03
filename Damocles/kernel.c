@@ -156,7 +156,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 		sleep(5000);
 
 		if ((pid = procWaitPid(-1, &status, &retval, O_NOWAIT)) != -1)
-			printf("The process %d has ended %s with exit code: %d", pid, (status == KILLED)? "KILLED": "NORMALY", retval);
+			printf("[*]Process %d: The process %d has ended %s with exit code: %d\n",getpid(), pid, (status == KILLED)? "KILLED": "NORMALY", retval);
 	}
 
 	kprint("System Halted");

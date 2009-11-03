@@ -7,93 +7,87 @@
 #include "include/sysasm.h"
 #include "include/syscall.h"
 #include "include/sysasm.h"
+#include "include/math.h"
 
 int foobar(int argc, char **argv);
 int bar(int argc, char **argv);
-void opDie();
-void zeroDie();
-void overDie();
 
-static int flag = 0;
+static int fds[3];
+
 
 int bar(int argc, char **argv){
-	int i, j, k;
 
-	int fds[3];
-	fds[STDIN] = IN_5;
-	fds[STDOUT] = TTY_5;
-	fds[CURSOR] = TTY_CURSOR_5;
+	void breakpoint();
+
+	int j, i = 1;
 
 
-//	for(i = 0 ; i < 5 ; i++){
-//		procCreate("foobar", (process_t)foobar, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
-//	}
-
-	i=procCreate("zeroDie", (process_t)zeroDie, (void*)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
-	j=procCreate("overDie", (process_t)overDie, (void*)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
-	k=procCreate("opDie", (process_t)opDie, (void*)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
-	printf("Zero! %d", i);
-	printf("over! %d", j);
-	printf("op! %d", k);
-//	procCreate("zeroDie", (process_t)zeroDie, (void*)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
-
-	sleep(100000);
-
-	return 1;
-}
+	for(j = 0 ; j <= argc ; j++)
+		printf("Argumento %d: %s\n", j, argv[j]);
 
 
-
-int foobar(int argc, char **argv){
-	while(1){
-		printf("Alive! %d\n", getpid());
+	int max = random(30);
+	for(i = 0 ; i <  max ;){
+		printf("[*]PID: %d Tick %d \n", getpid(), i++);
 		sleep(1000);
 	}
-	return 0;
+
+
+	exit(max);
+
+	char *p = (char *) 0x500000;
+
+	*p = 'A';
+
+
+
+
+	return max;
 }
 
-
-/* Las siguientes tienen que ir a un archivo aparte dentro de la carpeta process */
-
-void zeroDie(){
-	int i, a;
-
-	printf("Pid del proceso para crear zero division exception: %d!\n", getpid());
-
-	for(i=0; ;i++){
-		a=20/(60-i);
-		sleep(100);
-	}
-}
-
-void overDie(){
-
-	unsigned int a=0xFFFFFFF0, i;
-
-	printf("Pid del proceso para crear overflow exception: %d!\n", getpid());
-
-	for (i=0; ; i++){
-		a += i;
-		_overDie();
-	}
-}
-
-void opDie(){
-	printf("Pid del proceso para crear invalid opcode exception %d!", getpid());
-	sleep(100);
-	_opDie();
-}
 
 void debug(){
-	if(flag == 0){
-		flag = procCreate("bar", (process_t)bar, (void *)getPage(), NULL, 0, 0, 0, NULL, 0, 0, 0);
-	}
-	else{
-		procKill(flag);
-		flag = 0;
-	}
+
+//	int i, max = 10;
+//	int ret, retval;
+//	exitStatus_t status;
+//	int i1, i2;
+
+	fds[0] = IN_5;
+	fds[1] = TTY_5;
+	fds[2] = TTY_CURSOR_5;
+
+	//procCreate("Bar", (process_t)bar, (void *)getPage(), NULL, fds, 3, 2, arg, 0, 1, 0);
+
+	processApi_t proc = getContext("bar", bar, 0);
+
+	contextAddArg(proc, "Hola Lucho!");
+	contextAddArg(proc, "Esto es otro argumento.");
+
+	if(proc == NULL || contextCreate(proc) == -1 )
+		printf("proc NULL!\n");
+
+
+		//		exit(-1);
+//	}//	int i, max = 10;
+	//	int ret, retval;
+	//	exitStatus_t status;
+	//	int i1, i2;
+
+//
+//	ret = waitpid(-1, &status, &retval, 0);
+//	printf("Pid: %d has ended %s with return code: %d\n", ret, (status == KILLED)? "KILLED":"NORMALY", retval);
 
 }
+
+int foobar(int argc, char **argv){
+		printf("Alive! %d\n", getpid());
+		sleep(1000);
+		return random(100);
+}
+
+
+
 
 void breakpoint(){
 //	asm("cli; hlt"); /* Hace un halt del micro y se para completamente */
