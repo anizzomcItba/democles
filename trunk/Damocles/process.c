@@ -107,6 +107,9 @@ processApi_t getContext(char *name, process_t p, int priority){
 		}
 	}
 
+	contextAddArg( &contexs[i], name);
+
+
 	if(found){
 		return (processApi_t) &contexs[i];
 	}
@@ -132,9 +135,14 @@ static void initContext(int index, char *name, process_t p, int priory){
 	return;
 }
 
-void contextAddFd(processApi_t context, int localfd, int globalfd){
-	if(0 <= localfd && localfd < MAX_OPENFILES)
-		context->fds[localfd] = globalfd;
+void contextAddFd(processApi_t context, int oldfd, int newfd){
+	if((0 <= oldfd && oldfd < MAX_OPENFILES) && (0 <= newfd && newfd < MAX_OPENFILES))
+		context->fds[oldfd] = getFDs(schedCurrentProcess())[newfd];
+}
+
+void contextRemoveFd(processApi_t context, int fd){
+	if(0 <= fd && fd < MAX_OPENFILES)
+		context->fds[fd] = -2;
 }
 
 void contextAddArg(processApi_t context, char *arg){
@@ -165,6 +173,8 @@ int contextCreate(processApi_t context){
 		if(context->fds[i] == -1){
 			context->fds[i] = fds[i];
 		}
+		else if(context->fds[i] == -2)
+			context->fds[i] = -1;
 	}
 
 	int ret = procCreate(context->name, context->process, stack, NULL,
