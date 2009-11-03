@@ -65,4 +65,6 @@ int contextCreate(processApi_t context);
 
 void contextDestroy(processApi_t context);
 
+void contextRemoveFd(processApi_t context, int fd);
+
 #endif /* PROCESS_H_ */
