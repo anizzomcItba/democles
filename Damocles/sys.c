@@ -21,16 +21,59 @@ void *sysfwaitpid(void **args);
 void *sysfrunning(void **args);
 void *sysfstatics(void **args);
 
+void *sysfgetcontext(void **args);
+void *sysfcontextaddfd(void **args);
+void *sysfcontextaddarg(void **args);
+void *sysfcontextdestroy(void **args);
+void *sysfcontextremovefd(void **args);
+void *sysfcontexstart(void **args);
+
 typedef void *(*sysfT)(void **);
 
 sysfT syscalls[] = {
 		sysfRead, sysfWrite, sysfFlush, NULL, NULL, /* 0 - 4 */
 		NULL, NULL, NULL, sysfstatics, sysfrunning, /*  5- 9 */
 		sysfSleep, sysfExit, sysfgetPid, sysfKill, sysfwaitpid, /* 10 - 14 */
-		sysfgetPpid, NULL, NULL, NULL, NULL, /* 15 - 19 */
-		NULL, NULL, NULL, NULL, NULL, /* 20 - 24 */
+		sysfgetPpid, sysfgetcontext, sysfcontextaddarg, sysfcontextaddfd, sysfcontextremovefd, /* 15 - 19 */
+		sysfcontextdestroy, sysfcontexstart, NULL, NULL, NULL, /* 20 - 24 */
 		sysfsetCursor, sysfgetCursor, sysfclearScreen, NULL, NULL /* 25 - 29 */
 };
+
+
+/* Podría ser un mutex */
+void *sysfgetcontext(void **args){
+	int f = disableInts();
+	void *rta = (void *)getContext((char *) args[0], (process_t) args[1], (int) args[3]);
+	restoreInts(f);
+	return rta;
+}
+
+void *sysfcontextaddfd(void **args){
+	contextAddFd(args[0], (int) args[1],(int) args[2]);
+	return NULL;
+}
+void *sysfcontextaddarg(void **args){
+	contextAddArg(args[0], args[1]);
+	return NULL;
+}
+
+void *sysfcontextdestroy(void **args){
+	int f = disableInts();
+	contextDestroy(args[0]);
+	restoreInts(f);
+	return NULL;
+}
+void *sysfcontextremovefd(void **args){
+	contextRemoveFd(args[0], (int)args[1]);
+	return NULL;
+}
+void *sysfcontexstart(void **args){
+	int f = disableInts();
+	void *rta = (void *)contextCreate(args[0]);
+	restoreInts(f);
+	return rta;
+}
+
 
 
 void *sysfstatics(void **args){
