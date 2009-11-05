@@ -566,8 +566,12 @@ static void freeProcessMemory(int pid){
 }
 
 static void deallocProcess(int pid){
+	/* Retorno los semaforos al sistema */
 	semRetID(proc[pid%MAX_PROCESS].semChild);
+	semRetID(proc[pid%MAX_PROCESS].semFather);
+	/* Libero la memoria */
 	freeProcessMemory(pid);
+	/* Libero el slot */
 	proc[pid%MAX_PROCESS].status = FREE;
 }
 
