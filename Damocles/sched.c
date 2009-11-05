@@ -131,9 +131,11 @@ dword schedSchedule(){
 	}
 
 	if(oldSlot != currentSlot){
+
 		/* Si es el mismo proceso que antes, no hago nada con la memoria */
 		procDisableMem(sched[oldSlot].pid);
 		procEnableMem(sched[currentSlot].pid);
+
 	}
 
 	sched[currentSlot].ticks++;

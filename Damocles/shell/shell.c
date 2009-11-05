@@ -4,16 +4,21 @@
  */
 
 #include "../include/shell.h"
+
 #include "../include/stdio.h"
 #include "../include/string.h"
 #include "../include/defs.h"
+#include "../include/io.h"
+#include "../include/process.h"
 #include "../include/timer.h"
 #include "../include/video.h"
 #include "../include/sysasm.h"
 #include "../include/syscall.h"
 #include "../include/fortune.h"
 #include "../include/mmu.h"
-
+#include "../include/filesystem.h"
+#include "../include/tree.h"
+#include "../include/ls.h"
 
 #define SHELL_BUFFER_LENGTH 101
 
@@ -42,7 +47,7 @@ void debug(void);
 #define PROMPT "user@damocles:~$ "
 
 /*La cantidad de Comandos en Damocles*/
-#define COMM_QTY			9
+#define COMM_QTY			13
 
 /*Cantidad de flags que tiene screensaver*/
 #define SSAVERFLAGS			3
@@ -55,10 +60,14 @@ void debug(void);
 /*Cantidad de flags que tiene clear*/
 #define CLEARFLAGS			1
 
+
 #define FORTUNEFLAGS		1
-#define GETPAGEFLAGS		1
-#define RETPAGEFLAGS		2
 #define DEBUGFLAGS			1
+#define CAT_FLAGS			1
+#define LS_FLAGS			1
+#define CD_FLAGS			1
+#define TREE_FLAGS			1
+#define CWD_FLAGS			1
 
 
 
@@ -77,9 +86,13 @@ static int posOtroComando;
 #define COMMAND_SHUTDOWN 			3
 #define COMMAND_CLEAR				4
 #define	COMMAND_FORTUNE				5
-#define COMMAND_GETPAGE				6
-#define COMMAND_RETPAGE				7
-#define COMMAND_DEBUG				8
+#define COMMAND_DEBUG				6
+#define COMMAND_CAT					7
+#define COMMAND_LS					9
+#define COMMAND_CD					10
+#define COMMAND_CWD					11
+#define COMMAND_TREE				12
+
 
 
 static void backSpace(void);
@@ -92,7 +105,7 @@ static void executeCommand(int command);
 static void fetchCommand(char flecha);
 static int isArrow( unsigned char scanCode );
 static void commitCommand( void );
-static void autoFill(void);
+
 
 
 /*Arreglo que contiene el ultimo comando ingresado,
@@ -138,6 +151,10 @@ typedef struct{
 	commandFnct exec;
 }Command;
 
+
+/*Current working Directory*/
+static Directory shellCwd;
+
 /*Arreglo que contiene todos los comandos,
  * este es formado por populateCommands
  */
@@ -159,16 +176,17 @@ static void test();
 static void clear();
 static void testCommands(void);
 static void testText(void);
-static void getPageCommand(void);
-static void retPageCommand(void);
+static void catComm(void);
+static void treeComm(void);
+static void lsComm(void);
+static void cdComm(void);
+static void cwdComm(void);
 
 static void screenSaverHelp(void);
 static void testHelp(void);
 static void helpHelp(void);
 static void shutDownHelp(void);
 static void clearHelp(void);
-static void  getPageHelp(void);
-static void  retPageHelp(void);
 
 
 
@@ -190,7 +208,10 @@ static void populateCommands(Command * c)
 
 	/*Arreglo con los codigos en sus respectivos lugares, esto por conveniencia para poder
 	 * iterar despues al cargar myCommands*/
-	int commandCodes[COMM_QTY]={COMMAND_SCREENSAVER,COMMAND_TEST, COMMAND_HELP,COMMAND_SHUTDOWN,COMMAND_CLEAR, COMMAND_FORTUNE, COMMAND_GETPAGE, COMMAND_RETPAGE, COMMAND_DEBUG};
+	int commandCodes[COMM_QTY]={COMMAND_SCREENSAVER,COMMAND_TEST, COMMAND_HELP,COMMAND_SHUTDOWN,
+			COMMAND_CLEAR,COMMAND_FORTUNE, COMMAND_DEBUG,
+			COMMAND_CAT, COMMAND_LS, COMMAND_CD,
+			COMMAND_CWD,COMMAND_TREE};
 
 	/*Arreglo con los nombres de los comandos en sus respectivos lugares*/
 	char* commands[COMM_QTY];
@@ -200,9 +221,15 @@ static void populateCommands(Command * c)
 	commands[COMMAND_SHUTDOWN]="shutdown";
 	commands[COMMAND_CLEAR] ="clear";
 	commands[COMMAND_FORTUNE]= "fortune";
-	commands[COMMAND_GETPAGE] ="getPage";
-	commands[COMMAND_RETPAGE] = "retPage";
 	commands[COMMAND_DEBUG] = "debug";
+	commands[COMMAND_CAT] ="cat";
+	commands[COMMAND_CD] = "cd";
+	commands[COMMAND_LS] = "ls";
+	commands[COMMAND_CWD] = "cwd";
+	commands[COMMAND_TREE] = "tree";
+
+
+
 
 	/*Los punteros de funcion a los comandos y un arreglo que los contenga*/
 	commandFnct helpex = help;
@@ -211,9 +238,13 @@ static void populateCommands(Command * c)
 	commandFnct shutdownex = shutdown;
 	commandFnct clearex = clear;
 	commandFnct fortunex = fortune;
-	commandFnct getPageex = getPageCommand;
-	commandFnct retPageex = retPageCommand;
 	commandFnct debugx = debug;
+	commandFnct catx = catComm;
+	commandFnct cdx = cdComm;
+	commandFnct lsx = lsComm;
+	commandFnct cwdx = cwdComm;
+	commandFnct treex = treeComm;
+
 
 	/*Arreglo con los punteros a funcion en sus respectivos lugares*/
 	commandFnct command_execs[COMM_QTY];
@@ -223,9 +254,12 @@ static void populateCommands(Command * c)
 	command_execs[COMMAND_SHUTDOWN]=shutdownex;
 	command_execs[COMMAND_CLEAR]=clearex;
 	command_execs[COMMAND_FORTUNE] = fortunex;
-	command_execs[COMMAND_GETPAGE] = getPageex;
-	command_execs[COMMAND_RETPAGE] = retPageex;
 	command_execs[COMMAND_DEBUG] = debugx;
+	command_execs[COMMAND_CAT] = catx;
+	command_execs[COMMAND_LS] = lsx;
+	command_execs[COMMAND_CD] = cdx;
+	command_execs[COMMAND_CWD] = cwdx;
+	command_execs[COMMAND_TREE] = treex;
 
 	/*Arreglos con los flags de cada comando*/
 	char * screenSaverFlags[SSAVERFLAGS]={"s","p","l"};
@@ -235,9 +269,12 @@ static void populateCommands(Command * c)
 	char * shutdownFlags[SDOWNFLAGS]={""};
 	char * clearFlags[CLEARFLAGS]={""};
 	char * fortuneFlags[FORTUNEFLAGS]={""};
-	char * getPageFlags[GETPAGEFLAGS]={""};
-	char * retPageFlags[RETPAGEFLAGS]={"i"};
 	char * debugflags[DEBUGFLAGS] = {""};
+	char * catflags[CAT_FLAGS]={""};
+	char * lsflags[LS_FLAGS]={""};
+	char * cwdflags[CWD_FLAGS]={""};
+	char * treeflags[TREE_FLAGS]={""};
+	char * cdflags[CD_FLAGS]={""};
 
 	/*Arreglo que contiene la cantidad de flags de cada comando
 	 * en sus respectivas posiciones
@@ -249,9 +286,13 @@ static void populateCommands(Command * c)
 	flagsqtys[COMMAND_SCREENSAVER]= SSAVERFLAGS;
 	flagsqtys[COMMAND_CLEAR]=CLEARFLAGS;
 	flagsqtys[COMMAND_FORTUNE]=FORTUNEFLAGS;
-	flagsqtys[COMMAND_GETPAGE] = GETPAGEFLAGS;
-	flagsqtys[COMMAND_RETPAGE] = RETPAGEFLAGS;
 	flagsqtys[COMMAND_DEBUG] = DEBUGFLAGS;
+	flagsqtys[COMMAND_CAT] = CAT_FLAGS;
+	flagsqtys[COMMAND_LS] = LS_FLAGS;
+	flagsqtys[COMMAND_CD] = CD_FLAGS;
+	flagsqtys[COMMAND_CWD] = CWD_FLAGS;
+	flagsqtys[COMMAND_TREE] = TREE_FLAGS;
+
 	/*Este arreglo de arreglos va a tener todos los flags de cada comando
 	 * en sus respectivos lugares.
 	 */
@@ -263,9 +304,12 @@ static void populateCommands(Command * c)
 	flags[COMMAND_SHUTDOWN] = shutdownFlags;
 	flags[COMMAND_CLEAR]=clearFlags;
 	flags[COMMAND_FORTUNE]=fortuneFlags;
-	flags[COMMAND_GETPAGE]=getPageFlags;
-	flags[COMMAND_RETPAGE]=retPageFlags;
 	flags[COMMAND_DEBUG]= debugflags;
+	flags[COMMAND_CAT] = catflags;
+	flags[COMMAND_CD] = cdflags;
+	flags[COMMAND_CWD] = cwdflags;
+	flags[COMMAND_LS] = lsflags;
+	flags[COMMAND_TREE] = treeflags;
 
 	for ( i = 0; i < COMM_QTY; i++)
 	{
@@ -329,7 +373,7 @@ getCommand()
 			}
 			else if( letra == '\t')
 			{
-				autoFill();
+				//autoFill();
 			}
 			else
 			{
@@ -540,10 +584,6 @@ help()
 					break;
 				case COMMAND_FORTUNE : fortuneHelp();
 					break;
-				case COMMAND_GETPAGE : getPageHelp();
-					break;
-				case COMMAND_RETPAGE : retPageHelp();
-					break;
 				default: ;
 
 			}
@@ -599,16 +639,7 @@ clearHelp(void)
 	kprintf("\ntype clear\n");
 }
 
-static void
-getPageHelp()
-{
-	kprintf("\nGet an allocated page from memory\n");
-}
-static void
-retPageHelp()
-{
-	kprintf("\nReturn a previously allocated page\n");
-}
+
 
 static void
 screensaver()
@@ -874,66 +905,49 @@ isArrow( unsigned char scanCode )
 		scanCode == LEFT || scanCode == RIGHT;
 }
 
-static void
-autoFill (void )
+static void catComm(void)
 {
-
-//	int candidatos;
-
-	/*kprintf("tab");*/
-	/*TODO Auto Fill tab*/
-	/*TODO Bug al mostrar el comando temporal por segunda vez*/
-	/*TODO Hacer al historial circular*/
-	/*TODO Copiado de mouse*/
+	kprintf("cat\n");
 }
-
-static void
-getPageCommand(void)
+static void treeComm(void)
 {
-	unsigned int resp = getPage();
-	kprintf("Page id given : %u(0x%x)\n",resp,resp);
-	int * page;
-	page = (int * )resp;
-	*page = resp;
-	kprintf("Escribi un numero en la pagina!\n");
-	return;
+
+	Directory root = getDirectoryFromPath(params);
+	kprintf("root es %s\n", getDirectoryName(root));
+	/*TODO que funcione independiente de la terminal*/
+	int fds[3];
+	fds[STDIN] = IN_0;
+	fds[STDOUT] = TTY_0;
+	fds[CURSOR] = TTY_CURSOR_0;
+
+	char * argv[4];
+	argv[0] = "tree";
+	argv[1] = (char *)root;
+	argv[2] =0;
+	argv[3] = 0;
+	procCreate("tree",(process_t)tree,(void *)getPage(),NULL,fds,3,1,(char **)argv,0,0,0 );
+
+
 }
-
-static void
-retPageCommand(void)
+static void lsComm(void)
 {
-	int i;
+	processApi_t lsC = getContext("ls",(process_t)ls, 0);
+	char * argv[3];
+	argv[0] = "ls";
+	argv[1] = 100;
+	argv[2] = NULL;
 
-		for ( i = 0; i  < myCommands[COMMAND_RETPAGE].qtyflags; i++)
-		{
+	contextAddArg(lsC,argv[0]);
+	contextAddArg(lsC,argv[1]);
+	contextAddArg(lsC,argv[2]);
+	contextCreate(lsC);
+}
+static void cdComm(void)
+{
 
-			if ( !strcmp(flags,myCommands[COMMAND_RETPAGE].flags[i]))
-			{
-				switch(i)
-				{
-					case 0: {
+}
+static void cwdComm(void)
+{
 
-						int id = atoi(params);
-						if(id %4096 != 0)
-						{
-							kprintf("Invalid page id!\n");
-							return;
-						}
-						int * page;
-						page = (int *)id;
-						kprintf("En esta pagina estaba escrito un: %d\n", *page);
-						 freePage(id);
-						kprintf("Page returned\n");
-						return;
-					}
-						break;
-					default: ;
-
-				}
-				return;
-			}
-
-		}
-		kprintf("Return Page: Invalid Options!\n");
 }
 

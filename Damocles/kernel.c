@@ -21,6 +21,7 @@
 #include "include/semaphore.h"
 #include "drivers/video/crtc6845.h"
 #include "include/syslib.h"
+#include "include/filesystem.h"
 
 void testText(void);
 
@@ -35,7 +36,7 @@ IDTR idtr;				/* IDTR */
 
 static void *temporalSchedStack;
 static void *temporalFaultStack;
-
+static Directory root;
 void top(int argc, char **argv);
 void debug();
 
@@ -110,11 +111,12 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 //	saverInit();
 
+	root = startFileSystem();
 	/* Inicialización de todas las terminales */
 	_vinit();
 
-	ttySetActive(WORK_PAGE);
 
+	ttySetActive(WORK_PAGE);
 
 
 
