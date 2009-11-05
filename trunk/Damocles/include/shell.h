@@ -1,8 +1,6 @@
 /*
  * shell.h
  *
- *  Created on: Jun 6, 2009
- *      Author: dgrandes
  */
 
 #ifndef SHELL_H_
