@@ -2,7 +2,6 @@
 #include "include/stdio.h"
 #include "include/sched.h"
 #include "include/io.h"
-#include "include/process.h"
 #include "include/mmu.h"
 #include "include/sysasm.h"
 #include "include/syscall.h"
@@ -12,7 +11,6 @@
 int foobar(int argc, char **argv);
 int bar(int argc, char **argv);
 
-static int fds[3];
 
 
 int bar(int argc, char **argv){
@@ -48,35 +46,21 @@ int bar(int argc, char **argv){
 
 void debug(){
 
-//	int i, max = 10;
-//	int ret, retval;
-//	exitStatus_t status;
-//	int i1, i2;
+	int ret, retval;
+	exitStatus_t status;
 
-	fds[0] = IN_5;
-	fds[1] = TTY_5;
-	fds[2] = TTY_CURSOR_5;
 
-	//procCreate("Bar", (process_t)bar, (void *)getPage(), NULL, fds, 3, 2, arg, 0, 1, 0);
+	processApi_t proc = getcontext("bar", bar, 0);
 
-	processApi_t proc = getContext("bar", bar, 0);
-
-	contextAddArg(proc, "Hola Lucho!");
-	contextAddArg(proc, "Esto es otro argumento.");
+	contextaddarg(proc, "Hola Lucho!");
+	contextaddarg(proc, "Esto es otro argumento.");
 
 	if(proc == NULL || contextCreate(proc) == -1 )
 		printf("proc NULL!\n");
 
 
-		//		exit(-1);
-//	}//	int i, max = 10;
-	//	int ret, retval;
-	//	exitStatus_t status;
-	//	int i1, i2;
-
-//
-//	ret = waitpid(-1, &status, &retval, 0);
-//	printf("Pid: %d has ended %s with return code: %d\n", ret, (status == KILLED)? "KILLED":"NORMALY", retval);
+	ret = waitpid(-1, &status, &retval, 0);
+	printf("Pid: %d has ended %s with return code: %d\n", ret, (status == KILLED)? "KILLED":"NORMALY", retval);
 
 }
 

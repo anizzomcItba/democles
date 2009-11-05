@@ -57,7 +57,7 @@ int procWaitPid(int pid, exitStatus_t *status,int *retval, int option);
 
 processApi_t getContext(char *name, process_t p, int priority);
 
-void contextAddFd(processApi_t context, int localfd, int globalfd);
+void contextAddFd(processApi_t context, int oldfd, int newfd);
 
 void contextAddArg(processApi_t context, char *arg);
 
