@@ -510,7 +510,7 @@ void procSetup(){
 
 	schedSetUpInit(INIT_PROCESS, "init", 0);
 	schedSetUpIdle(procCreate("idle", (process_t)idle, (void *)getPage(), NULL,
-			fds, 3, 0, NULL, 0, 0, 0));
+			fds, 3, 0, NULL, 0, 0, 3));
 
 	return;
 }
