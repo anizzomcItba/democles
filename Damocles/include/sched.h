@@ -19,15 +19,9 @@ typedef struct {
 	int ticks;
 } schedProcData_t;
 
-/* Retorna el indice de la tabla global de descriptores que tiene el proceso
- * que la llama.
- */
-int schedGetGlobalFd(int fd);
-/* Retorna la terminal a la cual está "atacheado" el proceso que la llama */
-int schedAttachedTTY();
+
 
 /* Retorna el pid del proceso que está corriendo en este momento */
-
 
 int schedCurrentProcess();
 
@@ -72,4 +66,4 @@ int schedGetInfo(schedProcData_t data[], int max);
 
 void schedResetStatics();
 
-#endif /* SCHED_H_ */
+#endif

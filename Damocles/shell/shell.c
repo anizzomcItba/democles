@@ -153,7 +153,7 @@ typedef struct{
 
 
 /*Current working Directory*/
-static Directory shellCwd;
+//static Directory shellCwd; //TODO???
 
 /*Arreglo que contiene todos los comandos,
  * este es formado por populateCommands
@@ -934,7 +934,7 @@ static void lsComm(void)
 	processApi_t lsC = getContext("ls",(process_t)ls, 0);
 	char * argv[3];
 	argv[0] = "ls";
-	argv[1] = 100;
+	argv[1] = (char *)100; //TODO: Seguro que da segmentation fault?
 	argv[2] = NULL;
 
 	contextAddArg(lsC,argv[0]);
