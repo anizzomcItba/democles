@@ -111,7 +111,9 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 //	saverInit();
 
+	/*TODO SYSCALLS*/
 	root = startFileSystem();
+	populateFileSystem(root);
 	/* Inicialización de todas las terminales */
 	_vinit();
 

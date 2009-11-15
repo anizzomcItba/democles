@@ -108,3 +108,43 @@ strcmp(char * str1, char * str2 )
 void strcpy(char *dst, char *src){
 	memcpy(dst, src, strlen(src)+1);
 }
+
+void substr(char * dst, char *src, int len, int start)
+{
+	memcpy(dst, src + start, len);
+	char zero = '\0';
+
+	memcpy(dst + len, &zero, 1);
+}
+
+void token(char * dst, char * str, char sep)
+{
+	int i = 0;
+	while(str[i] != sep && str[i] != '\0')
+		i++;
+	substr(dst,str,i,0);
+
+}
+
+void stradd(char * dst, char * src)
+{
+
+	int start = strlen(dst);
+
+	memcpy(dst+start,src,strlen(src)+1);
+
+
+}
+
+void strremove(char * str, int start, int finish)
+{
+	char temp[64]={0};
+	int i,j;
+	j=0;
+	for(i=0;i< strlen(str);i++)
+	{
+		if(i< start || i > finish)
+			temp[j++]= str[i];
+	}
+	strcpy(str,temp);
+}

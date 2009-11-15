@@ -6,6 +6,7 @@
 #include "include/mmu.h"
 #include "include/filesystem.h"
 #include "include/string.h"
+#include "include/stdio.h"
 
 struct element{
 	entryType type;
@@ -42,7 +43,9 @@ static void makeFileHeader(unsigned int * file);
 static int isEntryADirectory(void * entry);
 static char * appendDataInFile(File,  int * amount);
 static char * deleteDataInFile(File);
-
+static void getNextElementFromPath(char * nextDir, char * path);
+static void reducePath(char * path);
+static elementEntry * getElementFromPath(char * path);
 
 Directory
 startFileSystem()
@@ -192,6 +195,25 @@ char * getDirectoryName(Directory dir)
 	return getNameFromEntry((elementEntry *)dir);
 }
 
+void getDirectoryPath(Directory dir, char * dst)
+{
+	char * root = "/";
+
+	Directory actual = (Directory)findEntry(dir->page,".");
+	Directory parent = (Directory)findEntry(dir->page,"..");
+
+	if(actual->page != parent->page)
+	{
+		getDirectoryPath(parent,dst);
+	}
+	if(strcmp(dir->name,".."))
+		stradd(dst,dir->name);
+	if(dst[strlen(dst)]!= '/')
+		stradd(dst,"/");
+
+	return;
+}
+
 char * getFileName(File file)
 {
 	return getNameFromEntry((elementEntry *)file);
@@ -309,10 +331,75 @@ writeToFile(File file, void * src, int length, placement where )
 	return 0;
 }
 
+static elementEntry *
+getElementFromPath(char * path)
+{
+	/*Siempre empiezo en root*/
+	elementEntry * resp = &root;
+	elementEntry * tempdir;
+	int len = strlen(path);
+	char  subdir[40] = {0};
+
+
+	/*Si es dir absoluta empiezo a partir del '/' */
+	if(path[0] == '/')
+	{
+		path = path +1;
+		len -= 1;
+	}
+
+	/*Elimino el trailing '/' si lo tiene */
+	if(path[strlen(path)]== '/')
+	{
+		path[strlen(path)]='\0';
+
+	}
+
+	while(len > 0){
+		getNextElementFromPath(subdir, path);
+
+		tempdir = findEntry(resp->page,subdir);
+
+
+		if(tempdir != NULL )
+			resp = tempdir;
+		else
+			return NULL;
+		len -= strlen(subdir)+1;
+		path += strlen(subdir)+1;
+	}
+
+	return resp;
+}
+
+
 Directory
 getDirectoryFromPath(char * path)
 {
-	return (Directory)&root;
+	elementEntry * elem = getElementFromPath(path);
+	if(elem->type == DIR_TYPE)
+		return (Directory)elem;
+	else
+		return NULL;
+}
+
+File
+getFileFromPath(char * path)
+{
+	elementEntry * elem = getElementFromPath(path);
+		if(elem->type == FILE_TYPE)
+			return (File)elem;
+		else
+			return NULL;
+}
+
+static void
+getNextElementFromPath(char * nextDir, char * path )
+{
+
+	token(nextDir,path,'/');
+
+
 }
 
 File
@@ -382,7 +469,7 @@ appendDataInFile(File file, int * amount)
 void
 populateFileSystem(Directory root)
 {
-	Directory  bin, home, music, docs, pictures;
+	Directory  bin, home, music, docs, pictures, salsa, tecno, tango, cumbia, pop;
 	File londonbeat,  beatit, damoclesimg, smiley;
 
 	bin = makeDir(root,"bin");
@@ -390,9 +477,11 @@ populateFileSystem(Directory root)
 	makeDir(root,"dev");
 	makeDir(root,"etc");
 	home = makeDir(root,"home");
+
 	makeDir(root,"media");
 	makeDir(root,"root");
 	makeDir(root,"var");
+
 
 	File shell = openFile(bin,"shell.bin");
 	File apache = openFile(bin,"apache.bin");
@@ -404,18 +493,115 @@ populateFileSystem(Directory root)
 	docs = makeDir(home,"Docs");
 	pictures = makeDir(home,"Pictures");
 
-	londonbeat = openFile(music,"Ive Been Thinking About you.mp3");
-	beatit = openFile(music,"Beat It.mp3");
+	salsa= makeDir(music,"salsa");
+	tecno = makeDir(music,"tecno");
+	tango = makeDir(music,"tango");
+	cumbia = makeDir(music,"cumbia");
+	pop = makeDir(music,"pop");
+
+
+	londonbeat = openFile(pop,"tkngabtu.txt");
+	beatit = openFile(pop,"beatit.txt");
+
+
+
+
 	damoclesimg = openFile(docs,"Damocles.img");
 	smiley = openFile(pictures,"Smiley.jpg");
 
 	char * str = "Esta es la cancion de London Beat, que se llama I've been thinking about you!";
 	writeToFile(londonbeat,str,strlen(str), BEGINNING);
 	int amount;
-	char * src = getDataInFile(londonbeat,&amount);
-	writeToFile(beatit,src,amount,BEGINNING);
-	char * str2 = "Esta es la cancion de Michael Jackson";
+
+	char * str2 = "Esta es la cancion de Michael Jackson, Beat It, de su segundo album como solista Thriller.";
 	writeToFile(beatit,str2,strlen(str2),END);
+
+}
+
+void DirDebug(Directory dir)
+{
+	kprintf("El nombre es %s, la pag es %x\n",dir->name,dir->page);
+	int i = getNumberOfEntriesInDir(dir);
+	void * elem;
+	int j=0;
+	entryType type;
+	while(i>0)
+	{
+		elem = getNextItemInDirectory(dir,&j,&type);
+		if(type == DIR_TYPE)
+		{
+			Directory newdir = (Directory)elem;
+			kprintf("Dir: nombre %s, pagina %x\n",
+					getDirectoryName(elem),newdir->page);
+		}
+
+		i--;
+	}
+
+}
+
+void
+concatenatePath(char * absolutepath, char * name)
+{
+
+	if(absolutepath[strlen(absolutepath)-1] != '/')
+		stradd(absolutepath,"/");
+
+	if(name[0]== '/')
+		strcpy(absolutepath,name);
+	else
+		stradd(absolutepath,name );
+
+	reducePath(absolutepath);
+}
+
+static void reducePath(char * path)
+{
+	int i=strlen(path)-1;
+
+	if(path[i] == '/')
+	{
+		path[i] = '\0';
+		i--;
+	}
+
+	char temp[64];
+	int j=0;
+	int separators = 0;
+	while(i>=0)
+	{
+
+
+		if(path[i] == '.' &&( path[i+1]=='/' || path[i+1]=='\0')&& path[i-1]== '/')
+			separators += 1;
+
+
+		if(path[i-1]=='.' && path[i]=='.'&&( path[i+1]=='/' || path[i+1] == '\0') && path[i-2]=='/')
+			separators += 2;
+
+		if(path[i] == '/' && separators)
+			separators--;
+		if(separators==0)
+		{
+			if(path[i] != '/')
+				temp[j++]=path[i];
+			else if(path[i] == '/' && temp[j-1] != '/' )
+				temp[j++]=path[i];
+
+		}
+		i--;
+
+	}
+	int len = strlen(temp) - 1;
+
+	for(i=0; i < len/2 +1;i++)
+	{
+		j= temp[i];
+		temp[i] = temp[len - i];
+		temp [len - i] = j;
+	}
+	strcpy(path,temp);
+
 
 }
 

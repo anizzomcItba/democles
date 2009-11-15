@@ -26,11 +26,12 @@ gcc -Wall -g -c debug.c -o debug.o -fno-builtin
 gcc -Wall -g -c -fno-stack-protector lib/syslib.c -o syslib.o -fno-builtin
 gcc -Wall -g -c process/top.c -o top.o -fno-builtin -fno-stack-protector
 gcc -Wall -g -c exceptions.c -o exceptions.o -fno-builtin
-gcc -Wall -g -c filesystem.c -o filesystem.o -fno-builtin
-gcc -Wall -g -c services/cat.c -o cat.o -fno-builtin
+gcc -Wall -g -c -fno-stack-protector filesystem.c -o filesystem.o -fno-builtin
+gcc -Wall -g -c -fno-stack-protector services/cat.c -o cat.o -fno-builtin
 gcc -Wall -g -c services/tree.c -o tree.o -fno-builtin
+gcc -Wall -g -c -fno-stack-protector services/cd.c -o cd.o -fno-builtin
 gcc -Wall -g -c services/ls.c -o ls.o -fno-builtin
-ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o syslib.o debug.o top.o exceptions.o filesystem.o cat.o  tree.o ls.o
+ld  -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o cd.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o syslib.o debug.o top.o exceptions.o filesystem.o cat.o  tree.o ls.o
 rm *.o
 
 

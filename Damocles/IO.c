@@ -159,7 +159,7 @@ void syswrite(int fd, char *buffIn, size_t qty){
 }
 
 void sysread(int fd, char *buffOut, size_t qty){
-	int i;
+	int i = 0;
 
 	int globalfd = procGetFD(fd);
 

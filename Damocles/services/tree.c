@@ -7,10 +7,20 @@
 #include "../include/filesystem.h"
 #include "../include/string.h"
 
+static void treeExec(Directory  root, int height );
+
 void
-tree(Directory  root, int height )
+tree(int argc, char ** argv)
 {
-	/*int i,k,j;
+	Directory root = getDirectoryFromPath(argv[1]);
+	treeExec(root, 0);
+
+}
+
+static void
+treeExec(Directory  root, int height )
+{
+	int i,k,j;
 	i = 0;
 
 	void * elem;
@@ -28,7 +38,7 @@ tree(Directory  root, int height )
 
 	for(k= getNumberOfEntriesInDir(root); k > 0; k-- )
 	{
-		//elem = getNextEntry((void *)root->page,&i);
+
 
 		elem = getNextItemInDirectory(root,&i,&myType);
 
@@ -50,12 +60,12 @@ tree(Directory  root, int height )
 		{
 			if(strcmp(name,".")&&strcmp(name,".."))
 			{
-				tree((Directory)elem,height+1);
+				treeExec((Directory)elem,height+1);
 			}
 
 		}
 
-	}*/
-	kprintf("tree %x,%d\n",root,height);
+	}
+
 
 }
