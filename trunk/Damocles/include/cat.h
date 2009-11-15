@@ -6,6 +6,6 @@
 #define CAT_H_
 
 /*Muestra el contenido de un archivo*/
-void cat(File file);
+void cat(int argc, char ** argv);
 
 #endif /* CAT_H_ */

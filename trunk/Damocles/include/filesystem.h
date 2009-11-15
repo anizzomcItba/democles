@@ -45,12 +45,20 @@ File  openFile(Directory  directory, char * name);
 void populateFileSystem(Directory root);
 
 Directory getDirectoryFromPath(char * path);
+
+File getFileFromPath(char * path);
+
 char * getDirectoryName(Directory  dir);
+
 char * getFileName(File  file);
 
 /*Devuelve un puntero a los datos en el archivo, y coloca en amount la cantidad de bytes del archivo*/
 char * getDataInFile(File  file, int * amount );
 
+void DirDebug(Directory dir);
 
+
+void getDirectoryPath(Directory dir, char * dst);
+void concatenatePath(char * absolutepath, char * name);
 
 #endif /* FILESYSTEM_H_ */

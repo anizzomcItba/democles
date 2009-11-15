@@ -19,6 +19,8 @@
 #include "../include/filesystem.h"
 #include "../include/tree.h"
 #include "../include/ls.h"
+#include "../include/cd.h"
+#include "../include/cat.h"
 
 #define SHELL_BUFFER_LENGTH 101
 
@@ -97,7 +99,7 @@ static int posOtroComando;
 
 static void backSpace(void);
 static void getCommandFromPrompt(char * buffer );
-static void getFlagsFromPrompt(char * buffer);
+static int getFlagsFromPrompt(char * buffer);
 static void getParamsFromPrompt( char * buffer, int index );
 static void executeCommand(int command);
 
@@ -187,8 +189,6 @@ static void testHelp(void);
 static void helpHelp(void);
 static void shutDownHelp(void);
 static void clearHelp(void);
-
-
 
 void shell(void)
 {
@@ -368,7 +368,7 @@ getCommand()
 
 				if ( index > 0)
 				{	backSpace();
-					index--;
+				index--;
 				}
 			}
 			else if( letra == '\t')
@@ -401,8 +401,13 @@ getCommand()
 
 	/*Recupero los flags, estos son de la forma
 	 * -flag
+	 * Si no hay flags, recupero los parametros
 	 */
-	getFlagsFromPrompt(shellBuffer);
+
+
+	if(getFlagsFromPrompt(shellBuffer) == 0)
+		getParamsFromPrompt(shellBuffer,strlen(command));
+
 
 	for ( i = 0; i < COMM_QTY; i++ )
 	{
@@ -444,13 +449,13 @@ getCommandFromPrompt(char * buffer )
 
 }
 
-static void
+static int
 getFlagsFromPrompt(char * buffer)
 {
 	int i;
 
 	for ( i = 0 ; i < MAX_FLAG_LENGTH; i++  )
-			flags[i]= 0x00;
+		flags[i]= 0x00;
 
 	int cadenaValidaDeFlags = 0;
 
@@ -459,12 +464,12 @@ getFlagsFromPrompt(char * buffer)
 
 	int flagindex = 0;
 	while ( shellBuffer[index] != 0x00 && shellBuffer[index] != '\n'
-		&& index < SHELL_BUFFER_LENGTH )
+			&& index < SHELL_BUFFER_LENGTH )
 	{
 		if( shellBuffer[index] == 0x20 && cadenaValidaDeFlags )
 		{	cadenaValidaDeFlags = 0;
-			getParamsFromPrompt(shellBuffer, index);
-			return;
+		getParamsFromPrompt(shellBuffer, index);
+		return flagindex;
 		}
 
 		if (cadenaValidaDeFlags)
@@ -477,11 +482,12 @@ getFlagsFromPrompt(char * buffer)
 		else if ( shellBuffer[index ] == '-' && cadenaValidaDeFlags )
 		{
 			cadenaValidaDeFlags = 0;
-			return;
+			return flagindex;
 		}
 
 		index++;
 	}
+	return flagindex;
 
 }
 
@@ -494,7 +500,7 @@ getParamsFromPrompt( char * buffer, int index )
 	char previous=0x00;
 
 	for ( i = 0 ; i < MAX_PARAMS_LENGTH; i++  )
-			params[i]= 0x00;
+		params[i]= 0x00;
 
 	while ( index < SHELL_BUFFER_LENGTH)
 	{
@@ -543,27 +549,27 @@ help()
 
 
 	if ( strlen(flags) == 0 )
-	       {
-	               kprintf("               ,\n");
-	               kprintf("             (@|\n");
-	               kprintf(",,           ,)|_____________________________________\n");
-	               kprintf("//\\\\8@8@8@8@8@8 / _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \\\n");
-	               kprintf("\\\\//8@8@8@8@8@8 \\_____________________________________/\n");
-	               kprintf("``           `)|\n");
-	               kprintf("             (@|   DAMOCLES OS  \n");
-	               kprintf("               '\n");
+	{
+		kprintf("               ,\n");
+		kprintf("             (@|\n");
+		kprintf(",,           ,)|_____________________________________\n");
+		kprintf("//\\\\8@8@8@8@8@8 / _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \\\n");
+		kprintf("\\\\//8@8@8@8@8@8 \\_____________________________________/\n");
+		kprintf("``           `)|\n");
+		kprintf("             (@|   DAMOCLES OS  \n");
+		kprintf("               '\n");
 
-	               kprintf("Commands:\n");
-	               kprintf("\nType help -command\n");
-	               for ( i = 0; i< COMM_QTY; i++)
-	               {
-	                       kprintf("    %s\n",myCommands[i].command);
+		kprintf("Commands:\n");
+		kprintf("\nType help -command\n");
+		for ( i = 0; i< COMM_QTY; i++)
+		{
+			kprintf("    %s\n",myCommands[i].command);
 
-	               }
+		}
 
 
-	               return;
-	       }
+		return;
+	}
 
 	for ( i = 0; i  < myCommands[COMMAND_HELP].qtyflags; i++)
 	{
@@ -572,19 +578,19 @@ help()
 		{
 			switch(i)
 			{
-				case COMMAND_SCREENSAVER : screenSaverHelp();
-					break;
-				case COMMAND_TEST : testHelp();
-					break;
-				case COMMAND_HELP : helpHelp();
-					break;
-				case COMMAND_SHUTDOWN : shutDownHelp();
-					break;
-				case COMMAND_CLEAR : clearHelp();
-					break;
-				case COMMAND_FORTUNE : fortuneHelp();
-					break;
-				default: ;
+			case COMMAND_SCREENSAVER : screenSaverHelp();
+			break;
+			case COMMAND_TEST : testHelp();
+			break;
+			case COMMAND_HELP : helpHelp();
+			break;
+			case COMMAND_SHUTDOWN : shutDownHelp();
+			break;
+			case COMMAND_CLEAR : clearHelp();
+			break;
+			case COMMAND_FORTUNE : fortuneHelp();
+			break;
+			default: ;
 
 			}
 			return;
@@ -653,51 +659,51 @@ screensaver()
 		{
 			switch(i)
 			{
-				case 0:{
+			case 0:{
 
-					int secs = atoi(params);
-					if ( secs <= 0 )
-					{
-						kprintf("Invalid seconds\n\n");
-						return;
-					}
-					setScreensaver(secs);
-					kprintf("Screensaver will activate after %d seconds.\n",secs);
+				int secs = atoi(params);
+				if ( secs <= 0 )
+				{
+					kprintf("Invalid seconds\n\n");
+					return;
 				}
-					break;
-				case 1:{
+				setScreensaver(secs);
+				kprintf("Screensaver will activate after %d seconds.\n",secs);
+			}
+			break;
+			case 1:{
 
-						previewSaver();
-					}
-					break;
+				previewSaver();
+			}
+			break;
 
-				case 2:{
+			case 2:{
 
-					if ( strlen(params) == 0 )
-					{
-						kprintf("The layout string is invalid!");
-						return;
-					}
+				if ( strlen(params) == 0 )
+				{
+					kprintf("The layout string is invalid!");
+					return;
+				}
 
-					/*Antepone un espacio para que no se vea junto,
-					 * lo pone al principio de la cadena que envia
-					 * a la funcion setLayout
-					 */
-					char layout[MAX_PARAMS_LENGTH];
-					for ( i = 0; i< strlen(params); i++)
-						layout[i+1]=params[i];
-					layout[i+1]=0x00;
-					layout[0]=0x20;
+				/*Antepone un espacio para que no se vea junto,
+				 * lo pone al principio de la cadena que envia
+				 * a la funcion setLayout
+				 */
+				char layout[MAX_PARAMS_LENGTH];
+				for ( i = 0; i< strlen(params); i++)
+					layout[i+1]=params[i];
+				layout[i+1]=0x00;
+				layout[0]=0x20;
 
-					for (i = 0 ; i  < strlen( layout ) + 1 ; i++ )
-						params[i] = layout[i];
-					saverLayout(params);
+				for (i = 0 ; i  < strlen( layout ) + 1 ; i++ )
+					params[i] = layout[i];
+				saverLayout(params);
 
-					kprintf("The new layout is %s!\n",params);}
-					break;
+				kprintf("The new layout is %s!\n",params);}
+			break;
 
 
-				default: ;
+			default: ;
 
 			}
 			return;
@@ -719,11 +725,11 @@ test()
 		{
 			switch(i)
 			{
-				case 0: testCommands();
-					break;
-				case 1: testText();
-					break;
-				default: ;
+			case 0: testCommands();
+			break;
+			case 1: testText();
+			break;
+			default: ;
 
 			}
 			return;
@@ -820,20 +826,20 @@ updateShellBuffer(int qty )
 
 		if ( mybuff[i] == '\n' )
 		{
-		if ( mybuff[i] == '\n' )
-		{
-			posOtroComando = i;
-			shellBuffer[i] = 0x00;
+			if ( mybuff[i] == '\n' )
+			{
+				posOtroComando = i;
+				shellBuffer[i] = 0x00;
+			}
+			else
+				shellBuffer[i]=mybuff[i];
+
 		}
-		else
-			shellBuffer[i]=mybuff[i];
 
-	}
+		kprintf("%s",shellBuffer);
+		index = qty;
 
-	kprintf("%s",shellBuffer);
-	index = qty;
-
-	return;
+		return;
 	}
 }
 
@@ -902,52 +908,72 @@ static int
 isArrow( unsigned char scanCode )
 {
 	return scanCode == DOWN || scanCode == UP ||
-		scanCode == LEFT || scanCode == RIGHT;
+			scanCode == LEFT || scanCode == RIGHT;
 }
 
 static void catComm(void)
 {
-	kprintf("cat\n");
+
+	processApi_t catC = getContext("cat",(process_t)cat, 0);
+	contextAddArg(catC,params);
+	contextCreate(catC);
+	int status, retval;
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
 }
 static void treeComm(void)
 {
 
-	Directory root = getDirectoryFromPath(params);
-	kprintf("root es %s\n", getDirectoryName(root));
-	/*TODO que funcione independiente de la terminal*/
-	int fds[3];
-	fds[STDIN] = IN_0;
-	fds[STDOUT] = TTY_0;
-	fds[CURSOR] = TTY_CURSOR_0;
-
-	char * argv[4];
-	argv[0] = "tree";
-	argv[1] = (char *)root;
-	argv[2] =0;
-	argv[3] = 0;
-	procCreate("tree",(process_t)tree,(void *)getPage(),NULL,fds,3,1,(char **)argv,0,0,0 );
+	char * cwd = shellGetCWD();
+	processApi_t treeC = getContext("tree",(process_t)tree, 0);
+	contextAddArg(treeC,cwd);
+	contextCreate(treeC);
+	int status, retval;
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
 
 
 }
 static void lsComm(void)
 {
+	char * cwd = shellGetCWD();
 	processApi_t lsC = getContext("ls",(process_t)ls, 0);
-	char * argv[3];
-	argv[0] = "ls";
-	argv[1] = (char *)100; //TODO: Seguro que da segmentation fault?
-	argv[2] = NULL;
-
-	contextAddArg(lsC,argv[0]);
-	contextAddArg(lsC,argv[1]);
-	contextAddArg(lsC,argv[2]);
+	contextAddArg(lsC,cwd);
 	contextCreate(lsC);
+	int status, retval;
+
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
 }
+
+
 static void cdComm(void)
 {
+	/*TODO como no me cambia el cwd todavia lo hago a mano
+	 * pero esto es lo que se deberia hacer*/
+	processApi_t cdC = getContext("cd",(process_t)cd, 0);
+	contextAddArg(cdC,params);
+	contextCreate(cdC);
+	int status, retval;
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
 
 }
+
 static void cwdComm(void)
 {
 
+}
+
+/*TODO este es el wrapper por ahora, CAMBIAR!!!!*/
+/*TODO IMPORTANTE Hacer que sea del proceso*/
+static char  currentWorkingDir[50] = "/";
+
+ char * shellGetCWD(void)
+{
+	return currentWorkingDir;
+}
+
+void shellSetCWD(char * newcwd)
+{
+
+        strcpy(currentWorkingDir,newcwd);
+        return;
 }
 
