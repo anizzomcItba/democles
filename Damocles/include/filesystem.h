@@ -57,8 +57,20 @@ char * getDataInFile(File  file, int * amount );
 
 void DirDebug(Directory dir);
 
-
 void getDirectoryPath(Directory dir, char * dst);
-void concatenatePath(char * absolutepath, char * name);
+
+void removeDir(Directory dir);
+
+void removeFile(Directory dir,File file);
+
+/*
+ * Recibe un path base y un nombre para unirlos en un solo path absoluto
+ * el path absoluto queda en dstAbsPath. En caso de recibir los params
+ * dstDir y dstName deja ahi el directorio final y el nombre final del archivo
+ */
+
+void formatPath(char * base, char * relative,char * dstAbsPath, char * dstDir, char * dstName);
+
+
 
 #endif /* FILESYSTEM_H_ */

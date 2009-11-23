@@ -12,6 +12,7 @@ struct element{
 	entryType type;
 	char name[LENGTH];
 	void * page;
+	int deleted;			//Baja-logica
 };
 
 typedef struct element elementEntry;
@@ -46,6 +47,8 @@ static char * deleteDataInFile(File);
 static void getNextElementFromPath(char * nextDir, char * path);
 static void reducePath(char * path);
 static elementEntry * getElementFromPath(char * path);
+static void concatenatePath(char * absolutepath, char * name);
+static void getNameFromAbsPath(char * path, char * dst);
 
 Directory
 startFileSystem()
@@ -81,7 +84,7 @@ insertEntry(unsigned int * dir, char * name, unsigned int * address, entryType t
 	strcpy(elem->name, name);
 	elem->page = address;
 	elem->type = type;
-
+	elem->deleted = 0;
 	header.items++;
 	header.usedOffset+=sizeof(*elem);
 
@@ -142,7 +145,7 @@ findEntry(unsigned int * dir, char * string)
 
 	while(i > 0)
 	{
-		if(!strcmp(string,elem->name))
+		if(!strcmp(string,elem->name)&& !elem->deleted)
 			return elem;
 
 		elem++;
@@ -186,6 +189,8 @@ getNameFromEntry(elementEntry * entry)
 {
 	if(entry == 0x00 )
 		return 0x00;
+	if(entry->deleted)
+		return 0x00;
 	return entry->name;
 }
 
@@ -197,7 +202,7 @@ char * getDirectoryName(Directory dir)
 
 void getDirectoryPath(Directory dir, char * dst)
 {
-	char * root = "/";
+
 
 	Directory actual = (Directory)findEntry(dir->page,".");
 	Directory parent = (Directory)findEntry(dir->page,"..");
@@ -233,7 +238,7 @@ getAddressFromEntry(elementEntry * entry)
 
 /*Como al pedir el siguiente puedo recibir Archivo o Directorio este
  * devuelve un void* , int * index es un param out para saber donde esta
- * el en el dir, no alterarlo...
+ * el Iterador en el dir, no alterarlo...
  */
 
 
@@ -241,8 +246,35 @@ getAddressFromEntry(elementEntry * entry)
 void *
 getNextItemInDirectory(Directory  Dir, int * index, entryType * type)
 {
-	void * ans = (void *)getNextEntry((void *)
-			getAddressFromEntry((elementEntry *)Dir),index);
+	elementEntry * elem;
+	int found = 0;
+	void * ans;
+	if(*index >= getNumberOfEntriesInDir(Dir))
+	{
+		*index = getNumberOfEntriesInDir(Dir);
+		return NULL;
+	}
+	do
+	{
+		ans = (void *)getNextEntry((void *)
+					getAddressFromEntry((elementEntry *)Dir),index);
+		elem = (elementEntry *)ans;
+		if(elem)
+		{
+			if(!elem->deleted)
+			{
+				found = 1;
+
+			}
+			else
+				ans = NULL;
+
+		}
+				//kprintf("found %d, index %d, number %d, ans %x\n",
+					//	found,*index,getNumberOfEntriesInDir(Dir),ans);
+	}while(!found && *index < getNumberOfEntriesInDir(Dir));
+
+
 	if(isEntryADirectory(ans))
 		*type = DIR_TYPE;
 	else
@@ -260,8 +292,10 @@ static int
 isEntryADirectory(void * entry)
 {
 	if(entry == 0x00 )
-		return 0x00;
+		return 0;
 	elementEntry * myentry = (elementEntry *)entry;
+	if(myentry->deleted)
+		return 0;
 	return ( myentry->type == DIR_TYPE );
 }
 
@@ -272,6 +306,10 @@ int
 getNumberOfEntriesInDir(Directory dir)
 {
 	dirHeader header;
+	if(dir == NULL)
+		return 0;
+	if(dir->deleted)
+		return 0;
 	header = *(dirHeader * )getAddressFromEntry((elementEntry *)dir);
 
 	return header.items;
@@ -299,6 +337,9 @@ writeToFile(File file, void * src, int length, placement where )
 	int dataPresent, dataWritten;
 	void * dst;
 	dataWritten = length;
+
+	if(file == NULL || src == NULL || length <= 0 )
+		return -1;
 
 	fileHeader * header = (fileHeader *)file->page;
 
@@ -337,9 +378,21 @@ getElementFromPath(char * path)
 	/*Siempre empiezo en root*/
 	elementEntry * resp = &root;
 	elementEntry * tempdir;
+
+	if(path == NULL )
+		return NULL;
+
 	int len = strlen(path);
+
+	if(len <= 0)
+		return NULL;
+
 	char  subdir[40] = {0};
 
+
+	/*Quieren ir a root*/
+	if(path[0] == '/' && path[1] == '\0')
+		return resp;
 
 	/*Si es dir absoluta empiezo a partir del '/' */
 	if(path[0] == '/')
@@ -376,7 +429,11 @@ getElementFromPath(char * path)
 Directory
 getDirectoryFromPath(char * path)
 {
+	if(path == NULL )
+		return NULL;
 	elementEntry * elem = getElementFromPath(path);
+	if(elem->deleted)
+		return NULL;
 	if(elem->type == DIR_TYPE)
 		return (Directory)elem;
 	else
@@ -386,7 +443,11 @@ getDirectoryFromPath(char * path)
 File
 getFileFromPath(char * path)
 {
+	if(path == NULL )
+		return NULL;
 	elementEntry * elem = getElementFromPath(path);
+	if(elem->deleted)
+		return NULL;
 		if(elem->type == FILE_TYPE)
 			return (File)elem;
 		else
@@ -397,7 +458,7 @@ static void
 getNextElementFromPath(char * nextDir, char * path )
 {
 
-	token(nextDir,path,'/');
+	token(nextDir,path,'/',1);
 
 
 }
@@ -409,7 +470,7 @@ openFile(Directory directory, char * name)
 
 	elementEntry * elem = findEntry(
 			getAddressFromEntry((elementEntry *)directory),name);
-	if(elem != 0x00 )
+	if(elem != 0x00 && !elem->deleted)
 		return elem;
 
 	unsigned int * newPage = (unsigned int *)getPage();
@@ -430,6 +491,10 @@ openFile(Directory directory, char * name)
 char *
 getDataInFile(File file, int * amount)
 {
+	if(file == NULL )
+		return NULL;
+	if(file->deleted)
+		return NULL;
 	fileHeader header = *(fileHeader *)file->page;
 	*amount = header.usedOffset - sizeof(header);
 
@@ -443,6 +508,10 @@ getDataInFile(File file, int * amount)
 static char *
 deleteDataInFile(File file)
 {
+	if(file == NULL )
+		return NULL;
+	if(file->deleted)
+		return NULL;
 	fileHeader header = *(fileHeader *)file->page;
 	header.usedOffset = sizeof(header);
 
@@ -455,6 +524,10 @@ deleteDataInFile(File file)
 static char *
 appendDataInFile(File file, int * amount)
 {
+	if(file == NULL )
+		return NULL;
+	if(file->deleted)
+		return NULL;
 	fileHeader header = *(fileHeader *)file->page;
 
 	char * resp = (char *)file->page;
@@ -500,7 +573,7 @@ populateFileSystem(Directory root)
 	pop = makeDir(music,"pop");
 
 
-	londonbeat = openFile(pop,"tkngabtu.txt");
+	londonbeat = openFile(pop,"thinking.txt");
 	beatit = openFile(pop,"beatit.txt");
 
 
@@ -511,7 +584,6 @@ populateFileSystem(Directory root)
 
 	char * str = "Esta es la cancion de London Beat, que se llama I've been thinking about you!";
 	writeToFile(londonbeat,str,strlen(str), BEGINNING);
-	int amount;
 
 	char * str2 = "Esta es la cancion de Michael Jackson, Beat It, de su segundo album como solista Thriller.";
 	writeToFile(beatit,str2,strlen(str2),END);
@@ -540,8 +612,7 @@ void DirDebug(Directory dir)
 
 }
 
-void
-concatenatePath(char * absolutepath, char * name)
+static void concatenatePath(char * absolutepath, char * name)
 {
 
 	if(absolutepath[strlen(absolutepath)-1] != '/')
@@ -559,6 +630,9 @@ static void reducePath(char * path)
 {
 	int i=strlen(path)-1;
 
+	/*En caso de ser root lo devuelvo no mas*/
+	if(path[0] == '/' && path[1] == '\0')
+		return;
 	if(path[i] == '/')
 	{
 		path[i] = '\0';
@@ -605,4 +679,96 @@ static void reducePath(char * path)
 
 }
 
+static void getNameFromAbsPath(char * path, char * dst)
+{
+	/*Si termina con / lo saco*/
+	char temp[64]={0};
+	strcpy(temp,path);
 
+	if(temp[strlen(temp)-1]=='/')
+		temp[strlen(temp)-1] = '\0';
+	token(dst,path,'/',0);
+	strremove(path,strlen(path)-strlen(dst),strlen(path));
+
+
+}
+
+
+void removeFile(Directory dir,File file)
+{
+	if(file == NULL || dir == NULL)
+		return;
+	else
+	{
+		if(file->type == DIR_TYPE || dir->type == FILE_TYPE )
+		{
+			return;
+		}
+		else
+		{
+			/*TODO SYSCALL DE MMU */
+			freePage((unsigned int)file->page);
+			file->deleted = 1;
+		}
+	}
+}
+
+void removeDir(Directory dir)
+{
+	int elems, index;
+	elementEntry  * elem;
+	if(dir == NULL )
+		return;
+	if(dir->deleted)
+		return;
+	dirHeader header = *(dirHeader *)dir->page;
+	elems = header.items;
+	index = 0;
+	entryType type;
+	while(index < elems)
+	{
+		elem = (elementEntry *)getNextItemInDirectory(dir,&index,&type);
+		if(elem != NULL )
+		{
+
+			/*No quiero borrar a mi padre*/
+			if(strcmp("..",getNameFromEntry(elem)) && strcmp(".",getNameFromEntry(elem)))
+			{
+
+				freePage((unsigned int)elem->page);
+				elem->deleted = 1;
+			}
+
+		}
+	}
+	freePage((unsigned int)dir->page);
+	dir->deleted = 1;
+
+}
+
+
+void formatPath(char * base, char * relative,char * dstAbsPath, char * dstDir, char * dstName)
+{
+	char temp_base[64]={0};
+	char temp_relative[64]={0};
+	strcpy(temp_base, base);
+	strcpy(temp_relative,relative);
+
+
+	if(!base)
+		return;
+
+	/*Primero concateno los dos, base, con relative*/
+	if(relative)
+		concatenatePath(temp_base,temp_relative);
+
+	if(dstAbsPath)
+		strcpy(dstAbsPath,temp_base);
+
+	if(dstDir != NULL && dstName != NULL )
+	{
+		strcpy(dstDir,temp_base);
+		getNameFromAbsPath(dstDir,dstName);
+	}
+	return;
+}

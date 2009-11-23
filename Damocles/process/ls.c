@@ -15,23 +15,29 @@ ls(int argc, char ** argv)
 
 	Directory dir = getDirectoryFromPath(argv[1]);
 	int numberOfFiles = getNumberOfEntriesInDir(dir);
-	int i;
 
 	entryType type;
 	void * elem;
 
 	int index = 0;
-	for(i=0;i < numberOfFiles; i++)
+	while(index < numberOfFiles)
 	{
 		elem = getNextItemInDirectory(dir,&index, &type);
-		if(type == DIR_TYPE )
+		if(elem != NULL )
 		{
-			kprintf(" %s\n",getDirectoryName((Directory)elem));
+			if(type == DIR_TYPE )
+			{
+				char * name = getDirectoryName((Directory)elem);
 
-		}
-		else
-		{
-			kprintf(" %s\n",getFileName((File)elem));
+				if(strcmp(".",name) && strcmp("..",name))
+					kprintf(" %s\n",name);
+
+			}
+			else
+			{
+				kprintf(" %s\n",getFileName((File)elem));
+
+			}
 
 		}
 

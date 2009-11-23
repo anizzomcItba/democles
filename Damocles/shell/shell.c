@@ -21,6 +21,10 @@
 #include "../include/ls.h"
 #include "../include/cd.h"
 #include "../include/cat.h"
+#include "../include/open.h"
+#include "../include/rm.h"
+#include "../include/mkdir.h"
+#include "../include/write.h"
 
 #define SHELL_BUFFER_LENGTH 101
 
@@ -46,10 +50,10 @@ void debug(void);
 #define LEFT 30
 #define RIGHT 31
 
-#define PROMPT "user@damocles:~$ "
+#define PROMPT "user@damocles:"
 
 /*La cantidad de Comandos en Damocles*/
-#define COMM_QTY			13
+#define COMM_QTY			16
 
 /*Cantidad de flags que tiene screensaver*/
 #define SSAVERFLAGS			3
@@ -69,7 +73,10 @@ void debug(void);
 #define LS_FLAGS			1
 #define CD_FLAGS			1
 #define TREE_FLAGS			1
-#define CWD_FLAGS			1
+#define RM_FLAGS			1
+#define OPEN_FLAGS			1
+#define MKDIR_FLAGS			1
+#define WRITE_FLAGS			4
 
 
 
@@ -92,8 +99,11 @@ static int posOtroComando;
 #define COMMAND_CAT					7
 #define COMMAND_LS					9
 #define COMMAND_CD					10
-#define COMMAND_CWD					11
+#define COMMAND_RM					11
 #define COMMAND_TREE				12
+#define COMMAND_OPEN				13
+#define COMMAND_MKDIR				14
+#define COMMAND_WRITE				15
 
 
 
@@ -154,8 +164,6 @@ typedef struct{
 }Command;
 
 
-/*Current working Directory*/
-//static Directory shellCwd; //TODO???
 
 /*Arreglo que contiene todos los comandos,
  * este es formado por populateCommands
@@ -182,7 +190,11 @@ static void catComm(void);
 static void treeComm(void);
 static void lsComm(void);
 static void cdComm(void);
-static void cwdComm(void);
+static void rmComm(void);
+static void openComm(void);
+static void mkdirComm(void);
+static void writeComm(void);
+
 
 static void screenSaverHelp(void);
 static void testHelp(void);
@@ -211,7 +223,7 @@ static void populateCommands(Command * c)
 	int commandCodes[COMM_QTY]={COMMAND_SCREENSAVER,COMMAND_TEST, COMMAND_HELP,COMMAND_SHUTDOWN,
 			COMMAND_CLEAR,COMMAND_FORTUNE, COMMAND_DEBUG,
 			COMMAND_CAT, COMMAND_LS, COMMAND_CD,
-			COMMAND_CWD,COMMAND_TREE};
+			COMMAND_RM,COMMAND_TREE, COMMAND_OPEN, COMMAND_MKDIR, COMMAND_WRITE};
 
 	/*Arreglo con los nombres de los comandos en sus respectivos lugares*/
 	char* commands[COMM_QTY];
@@ -225,9 +237,11 @@ static void populateCommands(Command * c)
 	commands[COMMAND_CAT] ="cat";
 	commands[COMMAND_CD] = "cd";
 	commands[COMMAND_LS] = "ls";
-	commands[COMMAND_CWD] = "cwd";
+	commands[COMMAND_RM] = "rm";
 	commands[COMMAND_TREE] = "tree";
-
+	commands[COMMAND_OPEN] = "open";
+	commands[COMMAND_MKDIR] = "mkdir";
+	commands[COMMAND_WRITE] = "write";
 
 
 
@@ -242,8 +256,11 @@ static void populateCommands(Command * c)
 	commandFnct catx = catComm;
 	commandFnct cdx = cdComm;
 	commandFnct lsx = lsComm;
-	commandFnct cwdx = cwdComm;
+	commandFnct rmx = rmComm;
 	commandFnct treex = treeComm;
+	commandFnct openx = openComm;
+	commandFnct mkdirx = mkdirComm;
+	commandFnct writex = writeComm;
 
 
 	/*Arreglo con los punteros a funcion en sus respectivos lugares*/
@@ -258,8 +275,11 @@ static void populateCommands(Command * c)
 	command_execs[COMMAND_CAT] = catx;
 	command_execs[COMMAND_LS] = lsx;
 	command_execs[COMMAND_CD] = cdx;
-	command_execs[COMMAND_CWD] = cwdx;
+	command_execs[COMMAND_RM] = rmx;
 	command_execs[COMMAND_TREE] = treex;
+	command_execs[COMMAND_OPEN] = openx;
+	command_execs[COMMAND_MKDIR] = mkdirx;
+	command_execs[COMMAND_WRITE] = writex;
 
 	/*Arreglos con los flags de cada comando*/
 	char * screenSaverFlags[SSAVERFLAGS]={"s","p","l"};
@@ -272,9 +292,12 @@ static void populateCommands(Command * c)
 	char * debugflags[DEBUGFLAGS] = {""};
 	char * catflags[CAT_FLAGS]={""};
 	char * lsflags[LS_FLAGS]={""};
-	char * cwdflags[CWD_FLAGS]={""};
+	char * rmflags[RM_FLAGS]={"r"};
 	char * treeflags[TREE_FLAGS]={""};
 	char * cdflags[CD_FLAGS]={""};
+	char * openflags[OPEN_FLAGS]={""};
+	char * mkdirflags[MKDIR_FLAGS]={""};
+	char * writeflags[WRITE_FLAGS]={"f","s","b","e"};
 
 	/*Arreglo que contiene la cantidad de flags de cada comando
 	 * en sus respectivas posiciones
@@ -290,8 +313,11 @@ static void populateCommands(Command * c)
 	flagsqtys[COMMAND_CAT] = CAT_FLAGS;
 	flagsqtys[COMMAND_LS] = LS_FLAGS;
 	flagsqtys[COMMAND_CD] = CD_FLAGS;
-	flagsqtys[COMMAND_CWD] = CWD_FLAGS;
+	flagsqtys[COMMAND_RM] = RM_FLAGS;
 	flagsqtys[COMMAND_TREE] = TREE_FLAGS;
+	flagsqtys[COMMAND_OPEN] = OPEN_FLAGS;
+	flagsqtys[COMMAND_MKDIR] = MKDIR_FLAGS;
+	flagsqtys[COMMAND_WRITE] = WRITE_FLAGS;
 
 	/*Este arreglo de arreglos va a tener todos los flags de cada comando
 	 * en sus respectivos lugares.
@@ -307,9 +333,12 @@ static void populateCommands(Command * c)
 	flags[COMMAND_DEBUG]= debugflags;
 	flags[COMMAND_CAT] = catflags;
 	flags[COMMAND_CD] = cdflags;
-	flags[COMMAND_CWD] = cwdflags;
+	flags[COMMAND_RM] = rmflags;
 	flags[COMMAND_LS] = lsflags;
 	flags[COMMAND_TREE] = treeflags;
+	flags[COMMAND_OPEN] = openflags;
+	flags[COMMAND_MKDIR] = mkdirflags;
+	flags[COMMAND_WRITE] = writeflags;
 
 	for ( i = 0; i < COMM_QTY; i++)
 	{
@@ -353,6 +382,7 @@ getCommand()
 	do{
 
 		kprintf("%s",PROMPT);
+		kprintf("%s$ ",shellGetCWD());
 
 		do{
 
@@ -514,7 +544,7 @@ getParamsFromPrompt( char * buffer, int index )
 		{
 			validParam = 0;
 			previous = 0x20;
-			params[myindex++]=0x00;
+			params[myindex++]=' ';
 		}
 
 		if ( buffer[index] != 0x20 && previous == 0x20 )
@@ -956,10 +986,54 @@ static void cdComm(void)
 
 }
 
-static void cwdComm(void)
+static void rmComm(void)
 {
-
+	kprintf("RM: flags %s, params %s\n",flags, params);
+	processApi_t rmC = getContext("rm",(process_t)rm, 0);
+	contextAddArg(rmC,flags);
+	contextAddArg(rmC,params);
+	contextCreate(rmC);
+	int status, retval;
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
 }
+
+static void openComm(void)
+{
+	processApi_t openC = getContext("open",(process_t)open, 0);
+	contextAddArg(openC,params);
+	contextCreate(openC);
+	int status, retval;
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
+}
+
+static void mkdirComm(void)
+{
+	processApi_t mkdirC = getContext("mkdir",(process_t)mkdir, 0);
+	contextAddArg(mkdirC,params);
+	contextCreate(mkdirC);
+	int status, retval;
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
+}
+
+
+static void writeComm(void)
+{
+	processApi_t writeC = getContext("write",(process_t)writeFile, 0);
+	contextAddArg(writeC,flags);
+	contextAddArg(writeC,params);
+	contextCreate(writeC);
+	int status, retval;
+	waitpid(-1,(exitStatus_t *)&status,&retval,0);
+}
+
+
+
+
+
+
+
+
+
 
 /*TODO este es el wrapper por ahora, CAMBIAR!!!!*/
 /*TODO IMPORTANTE Hacer que sea del proceso*/
