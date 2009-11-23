@@ -11,7 +11,10 @@ int atoi (char * s);
 int strcmp(char * str1, char * str2 );
 void strcpy(char *dst, char *src);
 void substr(char * dst, char *src, int len, int start);
-void token(char * dst, char * str, char sep);
+/*Saca un substring de str que este antes del separador. Si se
+ * empieza por el principio, beginning debe ser distinto de 0s
+ */
+void token(char * dst, char * str, char sep, int beginning);
 void stradd(char * dst, char * src);
 void strremove(char * str, int start, int finish);
 #endif

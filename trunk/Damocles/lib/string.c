@@ -117,12 +117,24 @@ void substr(char * dst, char *src, int len, int start)
 	memcpy(dst + len, &zero, 1);
 }
 
-void token(char * dst, char * str, char sep)
+void token(char * dst, char * str, char sep, int beginning)
 {
-	int i = 0;
-	while(str[i] != sep && str[i] != '\0')
-		i++;
-	substr(dst,str,i,0);
+	int i;
+	if(beginning)
+	{
+		i = 0;
+		while(str[i] != sep && str[i] != '\0')
+			i++;
+		substr(dst,str,i,0);
+
+	}
+	else
+	{
+		i = strlen(str);
+		while(str[i] != sep && i > 0)
+			i--;
+		substr(dst,str,strlen(str)-i,i+1);
+	}
 
 }
 

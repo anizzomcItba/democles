@@ -42,6 +42,9 @@ treeExec(Directory  root, int height )
 
 		elem = getNextItemInDirectory(root,&i,&myType);
 
+		if(!elem)
+			continue;
+
 		char * name;
 		if(myType == FILE_TYPE )
 		{

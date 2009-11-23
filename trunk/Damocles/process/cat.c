@@ -13,10 +13,10 @@ void cat(int argc, char ** argv)
 {
 
 	char * cwd = shellGetCWD();
-	char temp[LENGTH];
-	strcpy(temp, cwd);
-	concatenatePath(temp,argv[1]);
-	File file = getFileFromPath(temp);
+	char temp_abs[LENGTH];
+
+	formatPath(cwd,argv[1],temp_abs,NULL,NULL);
+	File file = getFileFromPath(temp_abs);
 	if(file!=NULL)
 		catExec(file);
 	else

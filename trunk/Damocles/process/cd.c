@@ -9,22 +9,23 @@
 
 void cd(int argc, char ** argv)
 {
-    /*Directory newDir = getDirectoryFromPath(argv[1]);*/
+
 
 	char * cwd = shellGetCWD();
-	char temp[LENGTH];
-	strcpy(temp, cwd);
-	concatenatePath(temp,argv[1]);
-	Directory resp = getDirectoryFromPath(temp);
+	char temp_dir[LENGTH];
 
+	formatPath(cwd,argv[1],temp_dir,NULL,NULL);
+	Directory resp = getDirectoryFromPath(temp_dir);
+
+	/*System Call para cambiar el directorio root de el proceso que me invoco*/
 	if(resp != NULL)
 	{
-		shellSetCWD(temp);
+		shellSetCWD(temp_dir);
 	}
 	else
 		kprintf("CD: Directory '%s' not found\n",argv[1]);
 
 
-    /*System Call para cambiar el directorio root de el proceso que me invoco*/
+
     return;
 }
