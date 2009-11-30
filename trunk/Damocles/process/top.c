@@ -5,6 +5,7 @@
 #include "../include/syscall.h"
 #include "../include/sysasm.h"
 
+#define MAX_TO_GET 13
 
 
 static char *statusString(status_t status);
@@ -15,7 +16,7 @@ int top(int argc, char **argv){
 
 
 	int currentProcess;
-	schedProcData_t data[10];
+	schedProcData_t data[MAX_TO_GET];
 	int running, i, totalticks;
 
 //	if(argc != 2){
@@ -27,7 +28,7 @@ int top(int argc, char **argv){
 	while(1){
 
 		currentProcess = running_process();
-		running = running_statics(data, 10);
+		running = running_statics(data, MAX_TO_GET);
 
 		totalticks = getTotal(data, running);
 		if(totalticks > 10){
@@ -52,7 +53,7 @@ int top(int argc, char **argv){
 				kprintf("%s\n", statusString(data[i].status));
 			}
 		}
-		sleep(2000);
+		sleep(1000);
 	}
 
 

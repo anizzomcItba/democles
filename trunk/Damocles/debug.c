@@ -24,10 +24,11 @@ int bar(int argc, char **argv){
 		printf("Argumento %d: %s\n", j, argv[j]);
 
 
-	int max = random(30);
-	for(i = 0 ; i <  max ;){
-		printf("[*]PID: %d Tick %d \n", getpid(), i++);
-		sleep(1000);
+	//int max = random(3000);
+	int max = 30000;
+	for(i = 0 ; i <  max ; i++){
+		//printf("[*]PID: %d Tick %d \n", getpid(), i++);
+		sleep(100);
 	}
 
 

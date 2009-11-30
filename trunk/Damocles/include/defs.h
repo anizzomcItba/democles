@@ -40,9 +40,11 @@ typedef unsigned int dword;
 #define WORK_PAGE	0
 #define SSVER_PAGE	1
 
+#ifndef DEBUG
 
-typedef unsigned size_t;
+typedef unsigned int size_t;
 
+#endif
 
 typedef struct {
 	int x;

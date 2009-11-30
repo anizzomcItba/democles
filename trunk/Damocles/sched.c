@@ -47,6 +47,10 @@ void schedSetUp(){
 }
 
 
+void schedStart(){
+	return;
+}
+
 void schedSetUpInit(int pid, char *name, int priroty){
 	sched[INIT_PROCESS].pid = pid;
 	strcpy(sched[INIT_PROCESS].name, name);

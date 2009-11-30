@@ -1,36 +1,41 @@
 nasm -f aout -g loader.asm -o loader.o
 nasm -f aout -g sys.asm -o sysasm.o
-gcc -Wall -g -m32 -c kernel.c -o kernel.o -fno-builtin
-gcc -Wall -g -m32 -c sys.c -fno-stack-protector -o sysc.o -fno-builtin
-gcc -Wall -g -m32 -c -fno-stack-protector drivers/video/crtc6845.c -o crtc6845.o -fno-builtin
-gcc -Wall -g -m32 -c lib/string.c -o string.o -fno-builtin
-gcc -Wall -g -m32 -c lib/video.c -o video.o -fno-builtin
+gcc -Wall -g -m32 -c -nostartfiles -nostdlib kernel.c -o kernel.o -fno-builtin
+gcc -Wall -g -m32 -c sys.c  -o sysc.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector -fno-builtin-printf drivers/video/crtc6845.c -o crtc6845.o -fno-builtin
+gcc -Wall -g -m32 -c  -fno-builtin-printf -fno-builtin-putchar -nostartfiles -nostdlib lib/string.c -o string.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-builtin-printf -fno-builtin-abs lib/video.c -o video.o -fno-builtin
 gcc -Wall -g -m32 -c drivers/keyboard/keyboard.c -o keyboard.o -fno-builtin
-gcc -Wall -g -m32 -fno-stack-protector -c lib/stdio.c -o stdio.o -fno-builtin
-gcc -Wall -g -m32 -c drivers/mouse/mouse.c -o mouse.o -fno-builtin
-gcc -Wall -g -m32 -c lib/math.c -o math.o -fno-builtin
-gcc -Wall -g -m32 -c drivers/timer/timer.c -o timer.o -fno-builtin
+gcc -Wall -g -m32 -c drivers/timer/timer.c -o timer.o -fno-builtin 
+gcc -Wall -g -m32 -c -fno-builtin-printf  drivers/mouse/mouse.c -o mouse.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector -fno-builtin-putchar -fno-builtin-printf lib/stdio.c -o stdio.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-builtin-abs lib/math.c -o math.o -fno-builtin
 gcc -Wall -g -m32 -c -fno-stack-protector shell/shell.c -o shell.o -fno-builtin
 gcc -Wall -g -m32 -c services/clipboard.c -o clipboard.o -fno-builtin
-gcc -Wall -g -m32 -c services/fortune.c -o fortune.o -fno-builtin
+gcc -Wall -g -m32 -c process/fortune.c -o fortune.o -fno-builtin
 gcc -Wall -g -m32 -c mmu.c -o mmu.o -fno-builtin
 gcc -Wall -g -m32 -c lib/stack.c -o stack.o -fno-builtin
 gcc -Wall -g -m32 -c IO.c -o IO.o -fno-stack-protector -fno-builtin
-gcc -Wall -g -m32 -c sched.c -o sched.o -fno-builtin
+#gcc -Wall -g -m32 -c sched.c -o sched.o -fno-builtin
+gcc -Wall -g -m32 -c schedpriority.c -o sched.o -fno-builtin
 gcc -Wall -g -m32 -c sysvideo.c -o sysvideo.o -fno-builtin
 gcc -Wall -g -m32 -c syscall.c -o syscall.o -fno-builtin
 gcc -Wall -g -m32 -c ttys.c -o ttys.o -fno-builtin
 gcc -Wall -g -m32 -c process.c -o process.o -fno-builtin
 gcc -Wall -g -m32 -c semaphore.c -o semaphore.o -fno-builtin
-gcc -Wall -g -m32 -c lib/syslib.c -o syslib.o -fno-builtin -fno-stack-protector
 gcc -Wall -g -m32 -c debug.c -o debug.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector lib/syslib.c -o syslib.o -fno-builtin
 gcc -Wall -g -m32 -c process/top.c -o top.o -fno-builtin -fno-stack-protector
 gcc -Wall -g -m32 -c exceptions.c -o exceptions.o -fno-builtin
 gcc -Wall -g -m32 -c -fno-stack-protector filesystem.c -o filesystem.o -fno-builtin
-gcc -Wall -g -m32 -c -fno-stack-protector services/cat.c -o cat.o -fno-builtin
-gcc -Wall -g -m32 -c services/tree.c -o tree.o -fno-builtin
-gcc -Wall -g -m32 -c -fno-stack-protector services/cd.c -o cd.o -fno-builtin
-gcc -Wall -g -m32 -c services/ls.c -o ls.o -fno-builtin
-ld -melf_i386 -T link.ld -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o syslib.o debug.o top.o exceptions.o filesystem.o cat.o cd.o tree.o ls.o
+gcc -Wall -g -m32 -c -fno-stack-protector process/cat.c -o cat.o -fno-builtin
+gcc -Wall -g -m32 -c process/tree.c -o tree.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector process/cd.c -o cd.o -fno-builtin
+gcc -Wall -g -m32 -c process/ls.c -o ls.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector  process/open.c -o open.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector  process/rm.c -o rm.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector process/mkdir.c -o mkdir.o -fno-builtin
+gcc -Wall -g -m32 -c -fno-stack-protector process/write.c -o write.o -fno-builtin
+ld -melf_i386 -T link.ld  -o kernel.bin kernel.o loader.o sysc.o sysasm.o crtc6845.o string.o video.o keyboard.o stdio.o math.o mouse.o timer.o shell.o clipboard.o cd.o fortune.o mmu.o stack.o IO.o sched.o sysvideo.o syscall.o ttys.o process.o semaphore.o syslib.o debug.o top.o exceptions.o filesystem.o cat.o  tree.o ls.o open.o rm.o mkdir.o write.o
 rm *.o
 mcopy -o kernel.bin a:/boot/
