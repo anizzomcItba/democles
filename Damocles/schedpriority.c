@@ -1,13 +1,45 @@
 /* schedpriority.c */
 
+//#define DEBUG
+
 #include "include/process.h"
 #include "include/sched.h"
+
+#ifndef DEBUG
 #include "include/defs.h"
 #include "include/string.h"
 #include "include/mmu.h"
 #include "include/io.h"
 #include "include/sysasm.h"
 #include "include/syslib.h"
+
+#else
+
+#include <string.h>
+#include <stdio.h>
+#include <time.h>
+
+#define uprintf printf
+
+void procDisableMem(int pid){
+	//printf("Memoria del proceso %d desabilitada\n", pid);
+}
+
+void procEnableMem(int pid){
+	//printf("Memoria del proceso %d habilitada\n", pid);
+}
+
+void procReadyToRemove(int pid){
+	printf("Proceso %d listo para remover\n", pid);
+}
+
+
+dword procGetStack(int pid){
+	printf("Retornado el stack del proceso %d\n", pid);
+}
+
+#endif
+
 
 
 #define CANT_PRIORITIES 4
@@ -25,6 +57,8 @@ typedef struct  process_scheduler_t{
 }process_scheduler_t;
 
 
+dword schedSchedule();
+
 /* Los contenedores a los procesos */
 static process_scheduler_t sched[MAX_PROCESS];
 
@@ -33,10 +67,9 @@ static process_scheduler_t *indexes[MAX_PROCESS];
 
 static int processCant = 0;
 
-static process_scheduler_t *currentProcess;
-static process_scheduler_t *waitingList;
-static process_scheduler_t *processList;
-static process_scheduler_t *freeList;
+static process_scheduler_t *currentProcess = NULL;
+static process_scheduler_t *waitingList = NULL;
+static process_scheduler_t *freeList = NULL;
 
 static process_scheduler_t *priorities[CANT_PRIORITIES];
 
@@ -44,15 +77,141 @@ static process_scheduler_t *priorities[CANT_PRIORITIES];
 static process_scheduler_t *getEmptySlot();
 static void addToIndexes(process_scheduler_t *slot);
 static void addToFreeSlots(process_scheduler_t *current);
-static process_scheduler_t *getByPid(int pid);
+static process_scheduler_t *getByPid(int pid, int *index);
 static void addToReadyList(process_scheduler_t *slot);
-static void removeFromReadyList(process_scheduler_t *slot);
-static void addToProcList(process_scheduler_t *slot);
-static void removeFromProcList(process_scheduler_t *slot);
+static int removeFromReadyList(process_scheduler_t *slot);
+static void removeFromIndexes(int index);
 static process_scheduler_t *getPrevReadySlot(process_scheduler_t *slot);
-static process_scheduler_t * getPrevProcSlot(process_scheduler_t *slot);
+static void enqueTicks(process_scheduler_t *proc, int ticks);
+static void orderIndexes();
 
 
+
+#ifdef DEBUG
+
+void dumpPriorities();
+void dumpPriority(int lvl);
+void dumpIndexes();
+void dumpWaitingList();
+
+int main(void){
+
+	printf("Testing!\n");
+
+	schedSetUp();
+
+	schedAdd(0, "init", 0);
+	schedAdd(1, "iddle", 3);
+	schedAdd(2, "Shell.0", 1);
+	schedAdd(3, "Shell.1", 1);
+	schedAdd(4, "Shell.2", 1);
+	schedAdd(5, "foo", 1);
+
+
+	//schedContinue(0);
+
+	//schedStart();
+
+
+	printf("About enqueu 10 ticks\n");
+	enqueTicks(indexes[0], 10);
+	dumpWaitingList();
+
+	printf("About enqueu 20 ticks\n");
+	enqueTicks(indexes[1], 20);
+	dumpWaitingList();
+
+	printf("About enqueu 30 ticks\n");
+	enqueTicks(indexes[2], 30);
+	dumpWaitingList();
+
+	printf("About enque 5 ticks\n");
+	enqueTicks(indexes[3], 5);
+	dumpWaitingList();
+
+	printf("About to eunque 7 ticks\n");
+	enqueTicks(indexes[4], 7);
+	dumpWaitingList();
+
+
+	printf("About to eunque 7 ticks\n");
+	enqueTicks(indexes[5], 7);
+	dumpWaitingList();
+
+
+	while(1){
+		sleep(2);
+		schedTicks();
+		dumpWaitingList();
+	}
+
+
+	return 0;
+}
+
+
+void dumpWaitingList(){
+	process_scheduler_t *proc = waitingList;
+	printf("Waiting List: ");
+	while(proc != NULL){
+		printf(" pid: %d: ticks: %d;", proc->pid, proc->waitingTicks);
+		proc = proc->nextWaiting;
+	}
+	putchar('\n');
+}
+
+void dumpIndexes(){
+	int i;
+
+	printf("Process Index:");
+
+	for(i = 0 ; i < processCant ; i++)
+		printf(" %d:%d:%s;", i, indexes[i]->pid, indexes[i]->name);
+	printf("\tCant:%d\n", processCant);
+}
+
+
+void dumpPriorities(){
+	int i;
+
+	for(i = 0 ; i < CANT_PRIORITIES ; i++){
+		dumpPriority(i);
+	}
+}
+
+void dumpPriority(int lvl){
+	int i;
+	process_scheduler_t *curr;
+
+	printf("Priority %d:", lvl);
+	curr = priorities[lvl];
+	if(curr != NULL){
+		do {
+			printf(" %d:%s;", curr->pid, curr->name);
+			curr = curr->nextInPriority;
+		}while(curr != priorities[lvl]);
+	}
+	putchar('\n');
+}
+
+#endif
+
+
+void schedStart(){
+	int i;
+
+	for(i = 0 ; i < CANT_PRIORITIES ; i++){
+		if(priorities[i] != NULL){
+			currentProcess = priorities[i];
+			return;
+		}
+	}
+	uprintf("No hay procesos listos para correr!!%d\n", __LINE__);
+	asm("cli; hlt");
+
+}
+
+//TODO: Test
 dword schedSchedule(){
 	process_scheduler_t *current = currentProcess;
 	process_scheduler_t *next;
@@ -61,7 +220,8 @@ dword schedSchedule(){
 
 
 	/* Si el proceso actual estaba corriendo, es porque está
-	 * listo
+	 * listo para seguir corriendo y está en la lista de procesos
+	 * listos
 	 */
 	if(current->status == RUNNING)
 		current->status = READY;
@@ -108,7 +268,6 @@ dword schedSchedule(){
 		procReadyToRemove(current->pid);
 		current->status = FREE;
 		addToFreeSlots(current);
-		processCant--;
 	}
 
 	currentProcess = next;
@@ -119,14 +278,27 @@ dword schedSchedule(){
 }
 
 int schedRemove(int pid){
-	process_scheduler_t *slot = getByPid(pid);
+	int index;
+	process_scheduler_t *slot = getByPid(pid, &index);
 
 	if(slot == NULL)
 		return 0;
 
 	removeFromReadyList(slot);
-	removeFromProcList(slot);
+	//removeFromProcList(slot);
+	removeFromIndexes(index);
 	slot->status = DEAD;
+	processCant--;
+
+	if(slot != currentProcess){
+		/* Si no está corriendo lo desalojo ahora
+		 * sinó espero que lo haga el scheduler */
+		procDisableMem(slot->pid);
+		procReadyToRemove(slot->pid);
+		slot->status = FREE;
+		addToFreeSlots(slot);
+	}
+
 	return 1;
 }
 
@@ -135,7 +307,7 @@ int schedCantProcess(){
 }
 
 int schedSetPriority(int pid, int priority){
-	process_scheduler_t *slot = getByPid(pid);
+	process_scheduler_t *slot = getByPid(pid, NULL);
 
 	if(slot == NULL)
 		return 0;
@@ -154,7 +326,7 @@ int schedSetPriority(int pid, int priority){
 int schedCurrentProcess(){
 	return currentProcess->pid;
 }
-
+//TODO: Test
 void schedTicks(){
 	/* No hay ningun proceso durmiendo, no hay nada que hacer */
 	if(waitingList == NULL)
@@ -176,19 +348,21 @@ void schedTicks(){
 
 	return;
 }
-
 void schedSetUp(){
 	int i;
 
 	for(i = 0 ; i < MAX_PROCESS ; i++){
 		sched[i].status = FREE;
+		sched[i].pid = i;  //Only for debuging porpouses
 		indexes[i] = NULL;
+		addToFreeSlots(&sched[i]);
 	}
 
 	for( i = 0 ; i < CANT_PRIORITIES ; i++){
 		priorities[i] = NULL;
 	}
 }
+
 
 int schedAdd(int pid, char *name, int priority){
 	process_scheduler_t *slot = getEmptySlot();
@@ -207,13 +381,12 @@ int schedAdd(int pid, char *name, int priority){
 	processCant++;
 
 	addToIndexes(slot);
-	addToProcList(slot);
+	//addToProcList(slot);
 	return pid;
 }
 
-
 int schedGetPriority(int pid){
-	process_scheduler_t *slot = getByPid(pid);
+	process_scheduler_t *slot = getByPid(pid, NULL);
 
 	if(slot == NULL)
 		return -1;
@@ -222,7 +395,7 @@ int schedGetPriority(int pid){
 }
 
 int schedContinue(int pid){
-	process_scheduler_t *slot = getByPid(pid);
+	process_scheduler_t *slot = getByPid(pid, NULL);
 
 	if(slot == NULL && slot->status != BLOCKED)
 		return 0;
@@ -233,7 +406,7 @@ int schedContinue(int pid){
 }
 
 int schedBlock(int pid){
-	process_scheduler_t *slot = getByPid(pid);
+	process_scheduler_t *slot = getByPid(pid, NULL);
 
 	/* Si el proceso no está corriendo o no está listo, es un error */
 	if(slot == NULL || !(slot->status == READY || slot->status == RUNNING))
@@ -254,52 +427,79 @@ void schedSetUpIdle(int pid){
 
 void schedSetUpInit(int pid, char *name, int priority){
 	schedAdd(pid, name, priority);
+	schedContinue(pid);
 }
 
-
 void schedSleep(int milliseconds){
-	int ticks = 18.2*((milliseconds+1)/1000) + 1;
-	process_scheduler_t *next;
-	int acum = 0;
+
+	int ticks = (milliseconds+1)/55;
 
 	/* Si no lo paro al menos un tick, salgo */
 	if(ticks < 1)
 		return;
-
 	removeFromReadyList(currentProcess);
+	currentProcess->status = WAITING;
 
-	/* Si el proceso es uno solo, simplemente lo seteo en la lista */
-
-	if(waitingList == NULL){
-		waitingList = currentProcess;
-		currentProcess->waitingTicks = ticks;
-		currentProcess->nextWaiting = NULL;
-		return;
-	}
-
-	next = waitingList;
-
-	while(next->nextWaiting != NULL && acum < ticks){
-		acum = next->waitingTicks;
-		next = next->nextWaiting;
-	}
-
-	currentProcess->nextWaiting = next->nextWaiting;
-	next->nextWaiting = currentProcess;
-
-	currentProcess->waitingTicks = (ticks - acum);
-
-	if(currentProcess->nextWaiting != NULL){
-		/* Le saco los ticks al siguiente que le quedaron asignados a este */
-	((process_scheduler_t	*)currentProcess->nextWaiting)->waitingTicks =
-				(((process_scheduler_t *)currentProcess->nextWaiting)->waitingTicks - currentProcess->waitingTicks);
-	}
+	enqueTicks(currentProcess, ticks);
 
 	return;
 }
 
+static void enqueTicks(process_scheduler_t *proc, int ticks){
+	int seted = 0;
+	process_scheduler_t *prev, *curr;
+
+	if(ticks < 1)
+		return;
+
+	if(waitingList == NULL){
+		waitingList = proc;
+		proc->waitingTicks = ticks;
+		proc->nextWaiting = NULL;
+	}
+	else
+	{
+		curr = waitingList;
+
+		while(curr != NULL && !seted){
+			if(ticks <= curr->waitingTicks){
+				if(curr == waitingList){
+					/* Es el primero!*/
+					curr->waitingTicks -= ticks;
+					proc->waitingTicks = ticks;
+					proc->nextWaiting = waitingList;
+					waitingList = proc;
+				}
+				else
+				{
+					prev->nextWaiting = proc;
+					proc->nextWaiting = curr;
+					proc->waitingTicks = ticks;
+					curr->waitingTicks -= ticks;
+				}
+				seted = 1;
+			}
+			else
+			{
+				prev = curr;
+				curr = curr->nextWaiting;
+				ticks -= prev->waitingTicks;
+			}
+
+		}
+
+		if(seted == 0){
+			prev->nextWaiting = proc;
+			proc->nextWaiting = NULL;
+			proc->waitingTicks = ticks;
+		}
+
+	}
+	return;
+}
+
 int schedChangeStatus(int pid, status_t status){
-	process_scheduler_t *slot = getByPid(pid);
+	process_scheduler_t *slot = getByPid(pid, NULL);
 
 	if(slot == NULL)
 		return 0;
@@ -317,48 +517,45 @@ int schedChangeStatus(int pid, status_t status){
 	}
 
 }
-
+//TODO: Test
 void schedResetStatics(){
-	process_scheduler_t *next;
 
-	next = processList;
+	int i;
 
-	while(next != NULL){
-		next->ticks = 0;
-		next = next->nextProcess;
-	}
+	for(i = 0 ; i < processCant ; i++)
+		indexes[i]->ticks = 0;
+
 
 	return;
 }
 
-
 int schedGetInfo(schedProcData_t data[], int max){
 
-	process_scheduler_t *next;
-	int cant = 0;
+	int i;
 
-	next = processList;
-
-	for(cant = 0 ; cant < max && next != NULL; cant++){
-		strcpy(data[cant].name, next->name);
-		data[cant].pid = next->pid;
-		data[cant].priority = next->priority;
-		data[cant].status = next->status;
-		data[cant].ticks = next->ticks;
-		next = next->nextInPriority;
+	for(i = 0; i < max && i < processCant ; i++){
+		strcpy(data[i].name, indexes[i]->name);
+		data[i].pid = indexes[i]->pid;
+		data[i].priority = indexes[i]->priority;
+		data[i].status = indexes[i]->status;
+		data[i].ticks = indexes[i]->ticks;
 	}
-	return cant;
+
+	return i;
 }
+
+
 
 
 static void addToIndexes(process_scheduler_t *slot){
 
-	if(indexes[processCant-1] != NULL){
-		/* PANIC */
-		asm("cli; hlt");
-	}
+//	if(indexes[processCant-1] == NULL){
+//		uprintf("El proceso anterior es nulo!!! Archivo %s Linea: %d\n", __FILE__,__LINE__);
+//		asm("cli; hlt");
+//	}
 
 	indexes[processCant-1] = slot;
+	orderIndexes();
 	return;
 
 }
@@ -369,7 +566,7 @@ static void addToFreeSlots(process_scheduler_t *current){
 	freeList = current;
 }
 
-static process_scheduler_t *getByPid(int pid){
+static process_scheduler_t *getByPid(int pid, int *index){
    int low = 0;
    int mid;
    int high = processCant;
@@ -382,8 +579,11 @@ static process_scheduler_t *getByPid(int pid){
                high = mid;
       }
 
-      if ((low < processCant) && (indexes[low]->pid == pid))
+      if ((low < processCant) && (indexes[low]->pid == pid)){
+          if (index != NULL)
+        	  *index = low;
           return indexes[low]; // found
+      }
       else
           return NULL; // not found
 }
@@ -395,6 +595,9 @@ static void addToReadyList(process_scheduler_t *slot){
 
 	if(priorities[slot->priority] == NULL)
 	{
+		/*
+		 * Este es el único proceso con esta prioridad
+		 */
 		priorities[slot->priority] = slot;
 		slot->nextInPriority = slot;
 	}
@@ -406,8 +609,7 @@ static void addToReadyList(process_scheduler_t *slot){
 	}
 	return;
 }
-
-static void removeFromReadyList(process_scheduler_t *slot){
+static int removeFromReadyList(process_scheduler_t *slot){
 	process_scheduler_t *prev;
 
 	if(slot->nextInPriority == slot)
@@ -419,16 +621,25 @@ static void removeFromReadyList(process_scheduler_t *slot){
 	{
 		prev = getPrevReadySlot(slot);
 		prev->nextInPriority = slot->nextInPriority;
+		if(priorities[slot->priority] == slot){
+			/* Este es el elemento apuntado, tengo
+			 * que correrlo tambien.
+			 */
+			priorities[slot->priority] = slot->nextInPriority;
+		}
+		return 1;
 	}
-	return;
+	return 0;
 }
+
 static process_scheduler_t *getPrevReadySlot(process_scheduler_t *slot){
 
 	process_scheduler_t *rta;
 
 	rta = priorities[slot->priority];
+
 	if(rta == NULL){
-		/* PANIC */
+		uprintf("La lista %d no es circular!!\n", slot->priority);
 		asm("cli; hlt;");
 	}
 
@@ -437,18 +648,6 @@ static process_scheduler_t *getPrevReadySlot(process_scheduler_t *slot){
 	}
 
 	return rta;
-}
-
-static void addToProcList(process_scheduler_t *slot){
-	slot->nextProcess = processList;
-	processList = slot;
-	return;
-}
-static void removeFromProcList(process_scheduler_t *slot){
-	process_scheduler_t *prev;
-
-	prev = getPrevProcSlot(slot);
-	prev->nextProcess = slot->nextProcess;
 }
 
 static process_scheduler_t *getEmptySlot(){
@@ -461,17 +660,34 @@ static process_scheduler_t *getEmptySlot(){
 	return free;
 }
 
-static process_scheduler_t * getPrevProcSlot(process_scheduler_t *slot){
-	process_scheduler_t *rta = processList;
 
-	if(rta == NULL){
-		/* PANIC */
-		asm("cli; hlt");
-	}
+static void removeFromIndexes(int index){
+	int i;
 
-	while(rta->nextProcess != slot){
-		rta = rta->nextProcess;
-	}
+	for(i = index ; i < processCant-1 ; i++)
+		indexes[i] = indexes[i+1];
+	indexes[processCant-1] = NULL;
+	return;
+}
 
-	return rta;
+
+static void orderIndexes(){
+		int size = processCant;
+		process_scheduler_t **v = indexes;
+		int inc = size/2;
+		int i, j;
+		process_scheduler_t *tmp;
+
+		while(inc > 0){
+			for(i = inc ; i < size ; i++){
+				tmp = v[i];
+				j = i;
+				while(j >= inc && v[j - inc]->pid > tmp->pid){
+					v[j] = v[j - inc];
+					j = j - inc;
+				}
+				v[j] = tmp;
+			}
+			inc = inc/2;
+		}
 }

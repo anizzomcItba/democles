@@ -87,6 +87,7 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	semSetup();
 	fdTableInit();
 	schedSetUp();
+
 	procSetup();
 
 
@@ -123,28 +124,49 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 
 
 
+
 	int fds[3];
 	fds[STDIN] = IN_0;
 	fds[STDOUT] = TTY_0;
 	fds[CURSOR] = TTY_CURSOR_0;
-
-	procCreate("Shell-0", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 0);
-
+	procCreate("Shell-0", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 0, 0, 1);
 
 	fds[STDIN] = IN_1;
 	fds[STDOUT] = TTY_1;
 	fds[CURSOR] = TTY_CURSOR_1;
-
-
-
-	procCreate("Shell-1", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 1, 0, 0);
+	procCreate("Shell-1", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 1, 0, 2);
 
 	fds[STDIN] = IN_2;
 	fds[STDOUT] = TTY_2;
 	fds[CURSOR] = TTY_CURSOR_2;
+	procCreate("Shell-2", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 2, 0, 2);
+//
+//	fds[STDIN] = IN_3;
+//	fds[STDOUT] = TTY_3;
+//	fds[CURSOR] = TTY_CURSOR_3;
+//	procCreate("Shell-3", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 3, 0, 2);
+//
+//	fds[STDIN] = IN_4;
+//	fds[STDOUT] = TTY_4;
+//	fds[CURSOR] = TTY_CURSOR_4;
+//	procCreate("Shell-4", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 4, 0, 2);
+//
+//	fds[STDIN] = IN_5;
+//	fds[STDOUT] = TTY_5;
+//	fds[CURSOR] = TTY_CURSOR_5;
+//	procCreate("Shell-5", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 5, 0, 2);
+//
+//	fds[STDIN] = IN_6;
+//	fds[STDOUT] = TTY_6;
+//	fds[CURSOR] = TTY_CURSOR_6;
+//	procCreate("Shell-6", (process_t)shell, (void *)getPage(), NULL, fds, 3, 0, NULL, 6, 0, 2);
 
 
-	procCreate("Top", (process_t)top, (void *)getPage(), NULL, fds, 3, 0, NULL, 2, 0, 0);
+
+	fds[STDIN] = IN_7;
+	fds[STDOUT] = TTY_7;
+	fds[CURSOR] = TTY_CURSOR_7;
+	procCreate("Top", (process_t)top, (void *)getPage(), NULL, fds, 3, 0, NULL, 7, 0, 2);
 
 	//setCursor(0, 0);
 
@@ -153,17 +175,18 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	exitStatus_t status;
 	int retval;
 
+
 	while(1){
 		_cli();
 		schedResetStatics();
 		_sti();
-		sleep(5000);
-
+		sleep(10000);
 		if ((pid = procWaitPid(-1, &status, &retval, O_NOWAIT)) != -1)
 			printf("[*]Process %d: The process %d has ended %s with exit code: %d\n",getpid(), pid, (status == KILLED)? "KILLED": "NORMALY", retval);
 	}
 
 	kprint("System Halted");
+	asm("cli; hlt");
 	return 0;
 
 }

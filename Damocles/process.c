@@ -96,12 +96,18 @@ int idle(int argc, char **argv);
 
 processApi_t getContext(char *name, process_t p, int priority){
 	int i, found;
-
 	found = 0;
+
+
+	int prior = schedGetPriority(schedCurrentProcess());
+
+
+	/* No se puede crear más prioridad que la que tiene */
+
 
 	for(i = 0 ; i < MAX_PROCESS_CONTEXTS ; i++){
 		if(contexs[i].inUse == 0){
-			initContext(i, name, p, priority);
+			initContext(i, name, p, (prior > priority)?prior : priority);
 			found = 1;
 			break;
 		}
@@ -236,7 +242,7 @@ int procCreate(char *name, process_t p, void *stack, void *heap,
 
 	/* Agregarlo al scheduler para que lo empiece a correr */
 	schedAdd(proc[slot].pid, name, priority);
-	schedChangeStatus(proc[slot].pid, READY);
+	schedContinue(proc[slot].pid);
 
 	return proc[slot].pid;
 }
@@ -509,6 +515,7 @@ void procSetup(){
 
 
 	schedSetUpInit(INIT_PROCESS, "init", 0);
+	schedStart();
 	schedSetUpIdle(procCreate("idle", (process_t)idle, (void *)getPage(), NULL,
 			fds, 3, 0, NULL, 0, 0, 3));
 
