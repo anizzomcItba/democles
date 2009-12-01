@@ -237,7 +237,7 @@ int_74_handler:
 		iret
 
 
-;Page exeption
+;Page exception
 int_0E_handler:
 
 	call getTemporalFaultStack

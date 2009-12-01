@@ -265,8 +265,10 @@ dword schedSchedule(){
 
 	/* Preparo el desalodo del proceso muerto */
 	if(current->status == DEAD){
+
 		procReadyToRemove(current->pid);
 		current->status = FREE;
+		removeFromReadyList(current);
 		addToFreeSlots(current);
 	}
 

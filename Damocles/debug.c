@@ -15,8 +15,6 @@ int bar(int argc, char **argv);
 
 int bar(int argc, char **argv){
 
-	void breakpoint();
-
 	int j, i = 1;
 
 
@@ -24,18 +22,25 @@ int bar(int argc, char **argv){
 		printf("Argumento %d: %s\n", j, argv[j]);
 
 
-	//int max = random(3000);
-	int max = 30000;
+	int max = random(20);
+	//int max = 30000;
 	for(i = 0 ; i <  max ; i++){
-		//printf("[*]PID: %d Tick %d \n", getpid(), i++);
-		sleep(100);
+		printf("[*]PID: %d Tick %d \n", getpid(), i);
+		sleep(1000);
 	}
+
+
+
+//	processApi_t proc = getcontext("foobar", foobar, 0);
+//	if(proc == NULL || contextCreate(proc) == -1 )
+//		printf("Creo un proceso antes de salir!\n");
 
 
 	exit(max);
 
-	char *p = (char *) 0x500000;
 
+	//Kill it!
+	char *p = (char *) 0x500000;
 	*p = 'A';
 
 
@@ -60,6 +65,13 @@ void debug(){
 		printf("proc NULL!\n");
 
 
+
+	//Comentar para que le haga waitPid init:
+
+	//char *p = (char *) 0x500000;
+	//*p = 'A';
+
+	//
 	ret = waitpid(-1, &status, &retval, 0);
 	printf("Pid: %d has ended %s with return code: %d\n", ret, (status == KILLED)? "KILLED":"NORMALY", retval);
 
@@ -67,7 +79,7 @@ void debug(){
 
 int foobar(int argc, char **argv){
 		printf("Alive! %d\n", getpid());
-		sleep(1000);
+		sleep(10000);
 		return random(100);
 }
 
