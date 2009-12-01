@@ -8,6 +8,7 @@
 #include "include/sysasm.h"
 #include "include/semaphore.h"
 #include "include/syscall.h"
+#include "include/filesystem.h"
 
 
 /*
@@ -76,6 +77,7 @@ typedef struct{
 	char circular;
 	char init;
 	int referenceCount;
+	File file;
 	int semId;
 } fdT;
 
@@ -90,6 +92,7 @@ static int isBufferFull(int fd);
 static int isBufferEmpty(int fd);
 static char bufferRead(int fd);
 static void bufferFlush(int fd);
+static int getFreeEntry();
 
 
 void fdTableInit(){
@@ -161,6 +164,7 @@ void syswrite(int fd, char *buffIn, size_t qty){
 void sysread(int fd, char *buffOut, size_t qty){
 	int i = 0;
 
+
 	int globalfd = procGetFD(fd);
 
 	if(globalfd == -1){
@@ -173,6 +177,7 @@ void sysread(int fd, char *buffOut, size_t qty){
 		for(i = 0 ; i < qty ; i++){
 			//while(isBufferEmpty(globalfd)){ /*_sleep(); */};
 			semDec(fdTable[globalfd].semId); /* Decremento el semaforo */
+			//Acá debería cargar el buffer si esto es un archivo
 			buffOut[i] = bufferRead(globalfd);
 		}
 	} else
@@ -180,6 +185,36 @@ void sysread(int fd, char *buffOut, size_t qty){
 		i = (qty < i)? qty : fdTable[globalfd].tail;
 		memcpy(buffOut, fdTable[globalfd].buffer, i);
 	}
+
+}
+
+
+int sysopen(char *path){
+	int globalfd = getFreeEntry();
+	File file;
+	int ret;
+
+	if((file = getFileFromPath(path)) == NULL)
+		return -1;
+
+
+	fdTable[globalfd].bsize = BUFFER_SIZE;
+	fdTable[globalfd].file = file;
+	fdTable[globalfd].circular = 1;
+	fdTable[globalfd].head = 0;
+	fdTable[globalfd].tail = 0;
+	fdTable[globalfd].referenceCount = 1;
+	fdTable[globalfd].semId = semGetID(0);
+	fdTable[globalfd].type = FILE;
+
+
+	if((ret = procSetFD(globalfd)) == -1)
+		fdTable[globalfd].init = 0;
+	else
+		fdTable[globalfd].init = 1;
+
+	return ret;
+
 
 }
 
@@ -232,7 +267,7 @@ static void bufferFlush(int fd){
 			_vtcflush(procAttachedTTY(schedCurrentProcess()), buffer, i);
 			break;
 		case FILE:
-			//TODO: Implementar.
+			writeToFile(fdTable[fd].file, buffer, i, END);
 			break;
 		case IN_KEYBOARD:
 			break;
@@ -253,4 +288,16 @@ static char bufferRead(int fd){
 	fdTable[fd].head = (h+1)%fdTable[fd].bsize;
 
 	return ret;
+}
+
+
+static int getFreeEntry(){
+	int i;
+
+	for(i = 0 ; i < MAX_FDS ; i++){
+		if(fdTable[i].init != 1)
+			return i;
+	}
+
+	return -1;
 }

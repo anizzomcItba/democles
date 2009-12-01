@@ -531,6 +531,19 @@ int procGetFD(int fd){
 }
 
 
+int procSetFD(int globalfd){
+	int i;
+
+	for(i = 0 ; i < MAX_OPENFILES ; i++)
+		if(proc[schedCurrentProcess()%MAX_PROCESS].fds[i] == -1){
+			proc[schedCurrentProcess()%MAX_PROCESS].fds[i] = globalfd;
+			return i;
+		}
+
+	return -1;
+}
+
+
 dword procGetStack(int pid){
 	return (dword) proc[pid%MAX_PROCESS].ESP;
 }
