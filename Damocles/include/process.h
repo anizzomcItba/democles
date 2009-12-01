@@ -49,6 +49,8 @@ int procAttachedTTY(int pid);
 
 int procGetFD(int fd);
 
+int procSetFD(int globalfd);
+
 int procGetPpid(int pid);
 
 dword procGetStack(int pid);
