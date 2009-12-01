@@ -96,6 +96,8 @@ static char *statusString(status_t status){
 		ret = "BLOCKED";
 		break;
 	case READY:
+		ret = "READY";
+		break;
 	case RUNNING:
 		ret = "RUNNING";
 		break;

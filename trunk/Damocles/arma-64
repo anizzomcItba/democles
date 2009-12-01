@@ -16,8 +16,8 @@ gcc -Wall -g -m32 -c process/fortune.c -o fortune.o -fno-builtin
 gcc -Wall -g -m32 -c mmu.c -o mmu.o -fno-builtin
 gcc -Wall -g -m32 -c lib/stack.c -o stack.o -fno-builtin
 gcc -Wall -g -m32 -c IO.c -o IO.o -fno-stack-protector -fno-builtin
-#gcc -Wall -g -m32 -c sched.c -o sched.o -fno-builtin
-gcc -Wall -g -m32 -c schedpriority.c -o sched.o -fno-builtin
+gcc -Wall -g -m32 -c sched.c -o sched.o -fno-builtin
+#gcc -Wall -g -m32 -c schedpriority.c -o sched.o -fno-builtin
 gcc -Wall -g -m32 -c sysvideo.c -o sysvideo.o -fno-builtin
 gcc -Wall -g -m32 -c syscall.c -o syscall.o -fno-builtin
 gcc -Wall -g -m32 -c ttys.c -o ttys.o -fno-builtin
