@@ -1,9 +1,9 @@
 /* stdio.c */
 
-#include "../include/sysasm.h"
-#include "../include/string.h"
-#include "../include/video.h"
-#include "../include/syscall.h"
+#include "sysasm.h"
+#include "string.h"
+#include "video.h"
+#include "syscall.h"
 
 void kputchar(char c){
 	write(STDOUT, &c, 1);

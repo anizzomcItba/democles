@@ -1,16 +1,16 @@
 /* process.c */
 
-#include "include/sched.h"
-#include "include/defs.h"
-#include "include/string.h"
-#include "include/mmu.h"
-#include "include/io.h"
-#include "include/sysasm.h"
-#include "include/process.h"
-#include "include/stdio.h"
-#include "include/syslib.h"
-#include "include/semaphore.h"
-#include "include/syscall.h"
+#include "sched.h"
+#include "defs.h"
+#include "string.h"
+#include "mmu.h"
+#include "io.h"
+#include "sysasm.h"
+#include "process.h"
+#include "stdio.h"
+#include "syslib.h"
+#include "semaphore.h"
+#include "syscall.h"
 
 
 #define MAX_PROCESS_CONTEXTS 10

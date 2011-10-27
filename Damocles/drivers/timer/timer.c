@@ -1,8 +1,8 @@
-#include "../../include/timer.h"
-#include "../../include/defs.h"
-#include "../../include/stdio.h"
-#include "../../include/video.h"
-#include "../../include/string.h"
+#include "timer.h"
+#include "defs.h"
+#include "stdio.h"
+#include "video.h"
+#include "string.h"
 
 #define LAYOUT_LENGTH 30
 

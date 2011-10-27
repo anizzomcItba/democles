@@ -5,10 +5,10 @@
  *      Author: Dámocles
  */
 
-#include "../../include/defs.h"
-#include "../../include/sysasm.h"
-#include "../../include/timer.h"
-#include "../../include/stdio.h"
+#include "defs.h"
+#include "sysasm.h"
+#include "timer.h"
+#include "stdio.h"
 
 /*Puerto donde el mouse deja su estado actual
  * Si esta listo para recibir comandos deja el bit 2 en 0

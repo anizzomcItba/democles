@@ -3,9 +3,9 @@
  *
  */
 
-#include "../include/stdio.h"
-#include "../include/filesystem.h"
-#include "../include/string.h"
+#include "stdio.h"
+#include "filesystem.h"
+#include "string.h"
 
 /*TODO ESTAS FUNCIONES DE FILESYSTEM DEBERIAN SER SYSCALLS */
 

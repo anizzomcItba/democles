@@ -5,12 +5,12 @@
  */
 
 #include "keyboard.h"
-#include "../../include/defs.h"
-#include "../../include/io.h"
-#include "../../include/sysasm.h"
-#include "../../include/kernel.h"
-#include "../../include/timer.h"
-#include "../../include/tty.h"
+#include "defs.h"
+#include "io.h"
+#include "sysasm.h"
+#include "kernel.h"
+#include "timer.h"
+#include "tty.h"
 
 
 #define KEYBOARD 8

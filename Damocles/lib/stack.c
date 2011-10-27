@@ -3,7 +3,7 @@
  *
  */
 
-#include "../include/stack.h"
+#include "stack.h"
 
 //Como necesito 20 bits, uso 3 chars.
 

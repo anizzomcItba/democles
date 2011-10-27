@@ -4,10 +4,10 @@
  *  Created on: Oct 7, 2009
  */
 
-#include "include/sys.h"
-#include "include/sched.h"
-#include "include/process.h"
-#include "drivers/video/crtc6845.h"
+#include "sys.h"
+#include "sched.h"
+#include "process.h"
+#include "system/drivers/video/crtc6845.h"
 
 void syssetCursor(coord_t *t){
 	_vtsetcursor(procAttachedTTY(schedCurrentProcess()), *t);

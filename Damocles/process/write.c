@@ -2,10 +2,10 @@
  * write.c
  */
 
-#include "../include/stdio.h"
-#include "../include/filesystem.h"
-#include "../include/string.h"
-#include "../include/shell.h"
+#include "stdio.h"
+#include "filesystem.h"
+#include "string.h"
+#include "shell.h"
 
 void writeFile(int argc, char ** argv)
 {

@@ -1,10 +1,10 @@
 /* clipboard.c */
 
-#include "../include/string.h"
-#include "../include/sysasm.h"
-#include "../include/syscall.h"
-#include "../include/io.h"
-#include "../include/tty.h"
+#include "string.h"
+#include "sysasm.h"
+#include "syscall.h"
+#include "io.h"
+#include "tty.h"
 
 static char clipBuffer[80*25*2+160];		//Video Size;
 

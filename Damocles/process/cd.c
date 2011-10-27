@@ -1,11 +1,11 @@
 /*
  * cd.c
  */
-#include "../include/stdio.h"
-#include "../include/string.h"
-#include "../include/cd.h"
-#include "../include/filesystem.h"
-#include "../include/shell.h"
+#include "stdio.h"
+#include "string.h"
+#include "cd.h"
+#include "filesystem.h"
+#include "shell.h"
 
 void cd(int argc, char ** argv)
 {

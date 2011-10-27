@@ -1,10 +1,10 @@
-#include "include/sys.h"
-#include "include/sysasm.h"
-#include "include/sched.h"
-#include "include/defs.h"
-#include "include/io.h"
-#include "include/process.h"
-#include "include/syslib.h"
+#include "sys.h"
+#include "sysasm.h"
+#include "sched.h"
+#include "defs.h"
+#include "io.h"
+#include "process.h"
+#include "syslib.h"
 
 void *sysfRead(void **args);
 void *sysfWrite(void **args);

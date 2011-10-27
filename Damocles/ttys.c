@@ -4,8 +4,8 @@
  * Módulo que lleva mantiene el control de las ttys.
  */
 
-#include "include/tty.h"
-#include "drivers/video/crtc6845.h"
+#include "tty.h"
+#include "system/drivers/video/crtc6845.h"
 
 static int activeTTY = 0;
 

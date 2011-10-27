@@ -1,10 +1,10 @@
 /* syslib.c */
 
-#include "../include/syslib.h"
-#include "../include/sysasm.h"
-#include "../drivers/video/crtc6845.h"
-#include "../include/string.h"
-#include "../include/stdio.h"
+#include "syslib.h"
+#include "sysasm.h"
+#include "system/drivers/video/crtc6845.h"
+#include "string.h"
+#include "stdio.h"
 
 int disableInts() {
 	int flags = gFlags();

@@ -1,9 +1,9 @@
 /* semaphore.c */
 
-#include "include/semaphore.h"
-#include "include/sched.h"
-#include "include/sysasm.h"
-#include "include/syslib.h"
+#include "semaphore.h"
+#include "sched.h"
+#include "sysasm.h"
+#include "syslib.h"
 
 #define MAX_PIDS 10
 #define MAX_SEMAPHORES 70
