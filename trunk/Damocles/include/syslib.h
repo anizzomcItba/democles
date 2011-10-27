@@ -5,7 +5,7 @@
 #ifndef SYSLIB_H_
 #define SYSLIB_H_
 
-#include "../include/defs.h"
+#include "defs.h"
 
 
 /* Desabilita las interrupciones si estaban habilitadas y guarda y retorna el

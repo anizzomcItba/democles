@@ -6,15 +6,15 @@
  *
  */
 
-#include "../drivers/video/crtc6845.h"
-#include "../include/video.h"
-#include "../include/math.h"
-#include "../include/string.h"
-#include "../include/shell.h"
-#include "../include/sys.h"
-#include "../include/clipboard.h"
-#include "../include/stdio.h"
-#include "../include/syscall.h"
+#include "system/drivers/video/crtc6845.h"
+#include "video.h"
+#include "math.h"
+#include "string.h"
+#include "shell.h"
+#include "sys.h"
+#include "clipboard.h"
+#include "stdio.h"
+#include "syscall.h"
 
 /* Funci�n que dice qu� hacer cuando clicke�s el bot�n izquierdo*/
 

@@ -2,16 +2,16 @@
 
 //#define DEBUG
 
-#include "include/process.h"
-#include "include/sched.h"
+#include "process.h"
+#include "sched.h"
 
 #ifndef DEBUG
-#include "include/defs.h"
-#include "include/string.h"
-#include "include/mmu.h"
-#include "include/io.h"
-#include "include/sysasm.h"
-#include "include/syslib.h"
+#include "defs.h"
+#include "string.h"
+#include "mmu.h"
+#include "io.h"
+#include "sysasm.h"
+#include "syslib.h"
 
 #else
 

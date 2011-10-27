@@ -1,6 +1,6 @@
 /* string.c */
 
-#include "../include/string.h"
+#include "string.h"
 
 #define TO_LOWER_CASE(x) (('A'<(x) && (x) <'Z')? ((x)-'A')+'a' : (x))
 #define TO_CHAR(x) ((x) + '0')

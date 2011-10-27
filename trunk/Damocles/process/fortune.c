@@ -1,6 +1,6 @@
-#include "../include/fortune.h"
-#include "../include/math.h"
-#include "../include/stdio.h"
+#include "fortune.h"
+#include "math.h"
+#include "stdio.h"
 
 /*
  * Fortune:

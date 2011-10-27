@@ -1,7 +1,7 @@
 /* schedTest.c */
 
 
-#include "../include/sched.h"
+#include "sched.h"
 #include <stdlib.h>
 #include <stdio.h>
 

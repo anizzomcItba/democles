@@ -1,5 +1,5 @@
 #include "defs.h"
-#include "../drivers/video/crtc6845.h"
+#include "system/drivers/video/crtc6845.h"
 
 #ifndef _DEFS_H_
 #define _DEFS_H_

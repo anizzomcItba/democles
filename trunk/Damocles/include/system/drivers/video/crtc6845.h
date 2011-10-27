@@ -1,7 +1,7 @@
 #ifndef _CRTC6845_H_
 #define _CRTC6845_H_
 
-#include "../../include/defs.h"
+#include "defs.h"
 
 #define WHITE_TXT 0x07
 #define INV 0x70

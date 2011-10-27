@@ -1,12 +1,12 @@
 
-#include "include/stdio.h"
-#include "include/sched.h"
-#include "include/io.h"
-#include "include/mmu.h"
-#include "include/sysasm.h"
-#include "include/syscall.h"
-#include "include/sysasm.h"
-#include "include/math.h"
+#include "stdio.h"
+#include "sched.h"
+#include "io.h"
+#include "mmu.h"
+#include "sysasm.h"
+#include "syscall.h"
+#include "sysasm.h"
+#include "math.h"
 
 int foobar(int argc, char **argv);
 int bar(int argc, char **argv);

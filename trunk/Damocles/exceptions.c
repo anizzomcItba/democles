@@ -1,7 +1,7 @@
-#include "include/process.h"
-#include "include/sched.h"
-#include "include/sysasm.h"
-#include "include/stdio.h"
+#include "process.h"
+#include "sched.h"
+#include "sysasm.h"
+#include "stdio.h"
 
 
 void pageFault(){

@@ -1,27 +1,28 @@
-#include "include/kernel.h"
-#include "include/defs.h"
-#include "include/multiboot.h"
-#include "include/sysasm.h"
-#include "include/string.h"
-#include "include/video.h"
-#include "include/shell.h"
+#include "kernel.h"
+#include "defs.h"
+#include "multiboot.h"
+#include "sysasm.h"
+#include "string.h"
+#include "video.h"
+#include "shell.h"
 #include "drivers/mouse/mouse.h"
 #include "drivers/keyboard/keyboard.h"
-#include "drivers/video/crtc6845.h"
-#include "include/stdio.h"
-#include "include/timer.h"
-#include "include/clipboard.h"
-#include "include/mmu.h"
-#include "include/syscall.h"
-#include "include/sched.h"
-#include "include/syscall.h"
-#include "include/io.h"
-#include "include/tty.h"
-#include "include/process.h"
-#include "include/semaphore.h"
-#include "drivers/video/crtc6845.h"
-#include "include/syslib.h"
-#include "include/filesystem.h"
+#include "system/drivers/video/crtc6845.h"
+#include "stdio.h"
+#include "timer.h"
+#include "clipboard.h"
+#include "mmu.h"
+#include "syscall.h"
+#include "sched.h"
+#include "syscall.h"
+#include "io.h"
+#include "tty.h"
+#include "process.h"
+#include "semaphore.h"
+#include "system/drivers/video/crtc6845.h"
+#include "syslib.h"
+#include "filesystem.h"
+#include "system/drivers/rtc.h"
 
 void testText(void);
 
@@ -55,6 +56,8 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 	 */
 
 
+	//Configuracion de RTC
+	rtc_configure();
 
 	setup_IDT_entry (&idt[0x08], 0x08, (dword)&int_08_handler, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x09], 0x08, (dword)&int_09_handler, ACS_INT, 0);
@@ -180,7 +183,8 @@ int _main(multiboot_info_t* mbd, unsigned int magic)
 		_cli();
 		schedResetStatics();
 		_sti();
-		sleep(10000);
+		sleep(1800);
+		//printf("[*]%d:%d:%d\n",rtc_getHours(), rtc_getMinutes(), rtc_getSeconds());
 		if ((pid = procWaitPid(-1, &status, &retval, O_NOWAIT)) != -1)
 			printf("[*]Process %d: The process %d has ended %s with exit code: %d\n",getpid(), pid, (status == KILLED)? "KILLED": "NORMALY", retval);
 	}

@@ -1,9 +1,9 @@
 /* crtc6845.c */
 
-#include "crtc6845.h"
-#include "../../include/sys.h"
-#include "../../include/sysasm.h"
-#include "../../include/string.h"
+#include "system/drivers/video/crtc6845.h"
+#include "sys.h"
+#include "sysasm.h"
+#include "string.h"
 
 /* Driver de video */
 
@@ -98,7 +98,7 @@ static void outCursorCoords(coord_t coord) {
 	_out(0x3D5, (res >> 8) & 0xFF);
 }
 /* Recive un buffer donde va a cambiar el contenido de la pantalla
- * entre las coordenas begin y end con un máximo de max caracteres.
+ * entre las coordenas begin y end con un mï¿½ximo de max caracteres.
  * las lineas las va a terminar con un \n.
  * Retorna la cantidad de caracteres copiados.
  */

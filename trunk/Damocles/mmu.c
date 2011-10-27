@@ -3,10 +3,10 @@
  *
  */
 
-#include "include/mmu.h"
-#include "include/stack.h"
-#include "include/sysasm.h"
-#include "include/stdio.h"
+#include "mmu.h"
+#include "stack.h"
+#include "sysasm.h"
+#include "stdio.h"
 
 
 typedef unsigned int dir_entry;

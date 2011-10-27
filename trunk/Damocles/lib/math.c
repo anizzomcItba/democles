@@ -1,4 +1,4 @@
-#include "../include/math.h"
+#include "math.h"
 
 static int randomSeed = 0;
 

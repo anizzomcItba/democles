@@ -1,9 +1,9 @@
 
 
-#include "../include/stdio.h"
-#include "../include/video.h"
-#include "../include/syscall.h"
-#include "../include/sysasm.h"
+#include "stdio.h"
+#include "video.h"
+#include "syscall.h"
+#include "sysasm.h"
 
 #define MAX_TO_GET 13
 

@@ -1,9 +1,9 @@
 
-#include "include/syscall.h"
-#include "include/sysasm.h"
-#include "drivers/video/crtc6845.h"
-#include "include/process.h"
-#include "include/sched.h"
+#include "syscall.h"
+#include "sysasm.h"
+#include "system/drivers/video/crtc6845.h"
+#include "process.h"
+#include "sched.h"
 
 
 

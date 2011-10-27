@@ -3,10 +3,10 @@
  */
 
 
-#include "include/mmu.h"
-#include "include/filesystem.h"
-#include "include/string.h"
-#include "include/stdio.h"
+#include "mmu.h"
+#include "filesystem.h"
+#include "string.h"
+#include "stdio.h"
 
 struct element{
 	entryType type;
