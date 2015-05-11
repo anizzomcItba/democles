@@ -1,0 +1,1 @@
+Damocles es un mini kernel/sistema operativo, mono tarea, mono usuario y seguro que inescalable.
